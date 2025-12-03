@@ -1,4 +1,5 @@
 import flet as ft
+from app.services.google.google_auth import google_oauth_login
 
 def loginpage(page: ft.Page):
     page.controls.clear()
@@ -72,8 +73,7 @@ def loginpage(page: ft.Page):
             show_snackbar("Please enter your password")
             return
 
-        
-        user_firstname = "User" 
+        user_firstname = "User"  
         show_snackbar(f"Welcome {user_firstname}!", ft.Colors.GREEN_400)
 
     def cspc_login_clicked(e):
@@ -83,9 +83,19 @@ def loginpage(page: ft.Page):
             show_snackbar("Please select a role")
             return
         
-        
-        user_firstname = "User" 
-        show_snackbar(f"Welcome {user_firstname}!", ft.Colors.GREEN_400)
+        try:
+            user_info = google_oauth_login()
+            email = user_info["email"]
+            name = user_info["name"]
+            
+            
+            user_firstname = name.split()[0] if name else "User"
+            
+            
+            show_snackbar(f"Welcome {user_firstname}!", ft.Colors.GREEN_400)
+            
+        except Exception as ex:
+            show_snackbar(str(ex))
 
     login_button = ft.ElevatedButton(
         text="Login",
