@@ -1,10 +1,9 @@
 import flet as ft
 
-def homepage(page):
+def homepage(page, login_func):
 
-    
     def get_started_clicked(e):
-        (page)
+        login_func(page)
    
     get_started_button = ft.Container(
         content=ft.ElevatedButton(

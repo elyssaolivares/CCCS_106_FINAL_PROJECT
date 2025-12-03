@@ -1,5 +1,6 @@
 import flet as ft
 from app.views.homepage import homepage
+from app.views.loginpage import loginpage
 
 def main(page: ft.Page):    
     page.title = "FIXIT"
@@ -23,7 +24,11 @@ def main(page: ft.Page):
         font_family="Poppins",
     )
 
-    homepage(page)
+    def go_to_login(e):
+        page.clean()
+        loginpage(page)
+
+    homepage(page, go_to_login)
 
 ft.app(
     target=main,
