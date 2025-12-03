@@ -1,5 +1,6 @@
 import flet as ft
 from app.services.google.google_auth import google_oauth_login
+from app.services.auth.admin_account import validate_admin_credentials
 
 def loginpage(page: ft.Page):
     page.controls.clear()
@@ -55,12 +56,13 @@ def loginpage(page: ft.Page):
         visible=True
     )
 
+    ADMIN_ACCOUNT = {"email": "admin@example.com", "password": "admin123", "name": "Admin"}
+
     def login_clicked(e):
         role = role_dropdown.value
         email = email_field.value.strip() if email_field.value else ""
         password = password_field.value if password_field.value else ""
 
-        
         if not role:
             show_snackbar("Please select a role")
             return
@@ -73,7 +75,20 @@ def loginpage(page: ft.Page):
             show_snackbar("Please enter your password")
             return
 
-        user_firstname = "User"  
+        if role.lower() in ["student", "faculty"]:
+            show_snackbar("Account not existed")
+            return
+
+        
+        if email != ADMIN_ACCOUNT["email"] or password != ADMIN_ACCOUNT["password"]:
+            show_snackbar("Invalid admin credentials")
+            return
+
+       
+        user_firstname = ADMIN_ACCOUNT["name"].split()[0]
+        
+        
+        
         show_snackbar(f"Welcome {user_firstname}!", ft.Colors.GREEN_400)
 
     def cspc_login_clicked(e):
@@ -88,7 +103,7 @@ def loginpage(page: ft.Page):
             email = user_info["email"]
             name = user_info["name"]
             
-            
+           
             user_firstname = name.split()[0] if name else "User"
             
             
