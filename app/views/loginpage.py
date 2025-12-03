@@ -6,6 +6,15 @@ def loginpage(page: ft.Page):
     page.end_drawer = None 
     page.drawer = None 
 
+    def show_snackbar(message, bgcolor=ft.Colors.RED_400):
+        snackbar = ft.SnackBar(
+            content=ft.Text(message, color=ft.Colors.WHITE),
+            bgcolor=bgcolor,
+        )
+        page.overlay.append(snackbar)
+        snackbar.open = True
+        page.update()
+
     role_dropdown = ft.Dropdown(
         hint_text="Select Role",
         width=300,
@@ -45,6 +54,39 @@ def loginpage(page: ft.Page):
         visible=True
     )
 
+    def login_clicked(e):
+        role = role_dropdown.value
+        email = email_field.value.strip() if email_field.value else ""
+        password = password_field.value if password_field.value else ""
+
+        
+        if not role:
+            show_snackbar("Please select a role")
+            return
+        
+        if not email:
+            show_snackbar("Please enter your email")
+            return
+        
+        if not password:
+            show_snackbar("Please enter your password")
+            return
+
+        
+        user_firstname = "User" 
+        show_snackbar(f"Welcome {user_firstname}!", ft.Colors.GREEN_400)
+
+    def cspc_login_clicked(e):
+        role = role_dropdown.value
+        
+        if not role:
+            show_snackbar("Please select a role")
+            return
+        
+        
+        user_firstname = "User" 
+        show_snackbar(f"Welcome {user_firstname}!", ft.Colors.GREEN_400)
+
     login_button = ft.ElevatedButton(
         text="Login",
         width=300,
@@ -53,6 +95,7 @@ def loginpage(page: ft.Page):
         color=ft.Colors.WHITE,
         style=ft.ButtonStyle(shape=ft.RoundedRectangleBorder(radius=10)),
         visible=True,
+        on_click=login_clicked
     )
 
     cspc_button = ft.ElevatedButton(
@@ -67,6 +110,7 @@ def loginpage(page: ft.Page):
             side=ft.BorderSide(2, ft.Colors.BLUE_900)
         ),
         visible=True,
+        on_click=cspc_login_clicked
     )
 
     login_form = ft.Container(
