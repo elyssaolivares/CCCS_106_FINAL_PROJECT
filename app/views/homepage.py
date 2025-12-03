@@ -6,51 +6,59 @@ def homepage(page):
     def get_started_clicked(e):
         (page)
    
-    get_started_button = ft.ElevatedButton(
-        text="Get Started",
-        width=300,
-        height=50,
-        bgcolor="#062C80",
-        color=ft.Colors.WHITE,
-        style=ft.ButtonStyle(
-            shape=ft.RoundedRectangleBorder(radius=10),
+    get_started_button = ft.Container(
+        content=ft.ElevatedButton(
+            text="Get Started",
+            width=200,
+            height=50,
+            bgcolor="#062C80",
+            color=ft.Colors.WHITE70,
+            style=ft.ButtonStyle(
+                shape=ft.RoundedRectangleBorder(radius=10),
+            ),
+            on_click=get_started_clicked,
         ),
-        on_click=get_started_clicked,
+        shadow=ft.BoxShadow(
+            blur_radius=30,
+            color=ft.Colors.with_opacity(0.3, color="#062C80"),
+            offset=ft.Offset(0, 4),
+        ),
     )
 
  
     home_content = ft.Container(
         content=ft.Column(
             [
-                ft.Container(height=10),
+                
                 ft.Image(
                     src="cspc_logo.png",
-                    width=200,
-                    height=200,
+                    width=130,
+                    height=130,
                     fit=ft.ImageFit.CONTAIN,
                 ),
-                ft.Container(height=15),
+                ft.Container(height=10),
                 ft.Text(
                     "Welcome to",
-                    size=16,
+                    size=12,
                     color=ft.Colors.BLACK,
                     text_align=ft.TextAlign.CENTER,
                 ),
-                ft.Container(height=10),
+
                 ft.Text(
                     "FIXIT",
-                    size=40,
+                    size=65,
+                    font_family="Poppins",
                     weight=ft.FontWeight.BOLD,
-                    color=ft.Colors.BLUE_900,
+                    color="#062C80",
                     text_align=ft.TextAlign.CENTER,
                 ),
                 ft.Text(
                     "Faculty Issue eXchange and\nInformation Tracker",
-                    size=14,
+                    size=12,
                     color=ft.Colors.BLACK,
                     text_align=ft.TextAlign.CENTER,
                 ),
-                ft.Container(height=50),
+                ft.Container(height=20),
                 get_started_button,
             ],
             horizontal_alignment=ft.CrossAxisAlignment.CENTER,
