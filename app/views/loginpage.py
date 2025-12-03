@@ -1,6 +1,7 @@
 import flet as ft
 from app.services.google.google_auth import google_oauth_login
 from app.services.auth.admin_account import validate_admin_credentials
+from app.views.userdashboard import user_dashboard
 
 def loginpage(page: ft.Page):
     page.controls.clear()
@@ -56,7 +57,7 @@ def loginpage(page: ft.Page):
         visible=True
     )
 
-    ADMIN_ACCOUNT = {"email": "admin@example.com", "password": "admin123", "name": "Admin"}
+
 
     def login_clicked(e):
         role = role_dropdown.value
@@ -75,19 +76,30 @@ def loginpage(page: ft.Page):
             show_snackbar("Please enter your password")
             return
 
+        # Check if role is Student or Faculty
         if role.lower() in ["student", "faculty"]:
             show_snackbar("Account not existed")
             return
 
         
-        if email != ADMIN_ACCOUNT["email"] or password != ADMIN_ACCOUNT["password"]:
+        admin_account = validate_admin_credentials(email, password)
+        if not admin_account:
             show_snackbar("Invalid admin credentials")
             return
 
-       
-        user_firstname = ADMIN_ACCOUNT["name"].split()[0]
+        
+        user_firstname = admin_account["name"].split()[0]
         
         
+        user_data = {
+            "name": admin_account["name"],
+            "email": admin_account["email"],
+            "type": "admin"
+        }
+        
+        page.controls.clear()
+        admin_dashboard(page, user_data)
+        page.update()
         
         show_snackbar(f"Welcome {user_firstname}!", ft.Colors.GREEN_400)
 
@@ -103,9 +115,19 @@ def loginpage(page: ft.Page):
             email = user_info["email"]
             name = user_info["name"]
             
-           
+            
             user_firstname = name.split()[0] if name else "User"
             
+            
+            user_data = {
+                "name": name,
+                "email": email,
+                "type": role.lower()
+            }
+            
+            page.controls.clear()
+            user_dashboard(page, user_data)
+            page.update()
             
             show_snackbar(f"Welcome {user_firstname}!", ft.Colors.GREEN_400)
             
