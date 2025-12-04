@@ -1,0 +1,106 @@
+import flet as ft
+
+class NavigationDrawerComponent:
+    def __init__(self, page: ft.Page, user_data, on_theme_toggle):
+        self.page = page
+        self.user_data = user_data
+        self.on_theme_toggle = on_theme_toggle
+        self.drawer = None
+    
+    def create_drawer(self, is_dark):
+        
+        theme_icon = ft.IconButton(
+            icon=ft.Icons.LIGHT_MODE_OUTLINED if is_dark else ft.Icons.DARK_MODE_OUTLINED,
+            icon_color=ft.Colors.WHITE,
+            icon_size=24,
+            on_click=self._toggle_theme,
+        )
+        
+        self.drawer = ft.NavigationDrawer(
+            controls=[
+                self._create_header(theme_icon),
+                ft.Divider(height=1, color=ft.Colors.WHITE, thickness=1),
+                self._create_menu_item(ft.Icons.HOME_OUTLINED, "Home", self._menu_home_clicked),
+                self._create_menu_item(ft.Icons.DESCRIPTION_OUTLINED, "Reports", self._menu_reports_clicked),
+                self._create_menu_item(ft.Icons.ACCOUNT_CIRCLE_OUTLINED, "Account", self._menu_account_clicked),
+                self._create_menu_item(ft.Icons.LOGOUT_OUTLINED, "Logout", self._menu_logout_clicked),
+            ],
+            bgcolor="#003D82",
+        )
+        return self.drawer
+    
+    def _create_header(self, theme_icon):
+        
+        return ft.Container(
+            content=ft.Row(
+                [
+                    ft.Text("Menu", size=20, weight=ft.FontWeight.BOLD, color=ft.Colors.WHITE),
+                    theme_icon,
+                ],
+                alignment=ft.MainAxisAlignment.SPACE_BETWEEN,
+            ),
+            padding=20,
+            bgcolor="#003D82",
+        )
+    
+    def _create_menu_item(self, icon, text, on_click):
+        
+        return ft.Container(
+            content=ft.TextButton(
+                content=ft.Row(
+                    [
+                        ft.Icon(icon, color=ft.Colors.WHITE, size=20),
+                        ft.Text(text, color=ft.Colors.WHITE, size=16, weight=ft.FontWeight.W_500),
+                    ],
+                    spacing=15,
+                    alignment=ft.MainAxisAlignment.START,
+                ),
+                on_click=on_click,
+                style=ft.ButtonStyle(
+                    padding=15,
+                    shape=ft.RoundedRectangleBorder(radius=0),
+                    overlay_color=ft.Colors.with_opacity(0.2, ft.Colors.WHITE),
+                ),
+            ),
+            padding=ft.padding.symmetric(horizontal=10, vertical=2),
+        )
+    
+    def _close_drawer(self):
+        
+        self.drawer.open = False
+        self.page.update()
+    
+    def _toggle_theme(self, e):
+        
+        self._close_drawer()
+        self.on_theme_toggle(e)
+    
+    def _menu_home_clicked(self, e):
+        
+        self._close_drawer()
+    
+    def _menu_reports_clicked(self, e):
+        
+        self._close_drawer()
+        from app.views.report_issue_page import report_issue_page
+        report_issue_page(self.page, self.user_data)
+    
+    def _menu_account_clicked(self, e):
+        
+        self._close_drawer()
+        from app.views.account_page import account_page
+        account_page(self.page, self.user_data)
+    
+    def _menu_logout_clicked(self, e):
+        
+        self._close_drawer()
+        self.page.session.clear()
+        self.page.controls.clear()
+        self.page.floating_action_button = None
+        from app.views.loginpage import loginpage
+        loginpage(self.page)
+    
+    def open_drawer(self, e):
+        
+        self.drawer.open = True
+        self.page.update()
