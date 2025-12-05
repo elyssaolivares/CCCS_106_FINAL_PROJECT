@@ -67,8 +67,9 @@ class NavigationDrawerComponent:
     
     def _close_drawer(self):
         
-        self.drawer.open = False
-        self.page.update()
+        if self.drawer:
+            self.drawer.open = False
+            self.page.update()
     
     def _toggle_theme(self, e):
         
@@ -78,6 +79,8 @@ class NavigationDrawerComponent:
     def _menu_home_clicked(self, e):
         
         self._close_drawer()
+        from .user_dashboard import user_dashboard
+        user_dashboard(self.page, self.user_data)
     
     def _menu_reports_clicked(self, e):
         
@@ -102,5 +105,6 @@ class NavigationDrawerComponent:
     
     def open_drawer(self, e):
         
-        self.drawer.open = True
-        self.page.update()
+        if self.drawer:
+            self.drawer.open = True
+            self.page.update()
