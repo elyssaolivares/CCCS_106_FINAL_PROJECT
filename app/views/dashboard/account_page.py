@@ -1,4 +1,6 @@
 import flet as ft
+from .session_manager import SessionManager
+from .navigation_drawer import NavigationDrawerComponent
 
 def account_page(page: ft.Page, user_data=None):
     
@@ -16,42 +18,38 @@ def account_page(page: ft.Page, user_data=None):
     
     
     def toggle_dark_theme(e):
-        new_dark = not page.session.get("is_dark_theme", False)
-        page.session.set("is_dark_theme", new_dark)
-        page.theme_mode = ft.ThemeMode.DARK if new_dark else ft.ThemeMode.LIGHT
-        page.bgcolor = ft.Colors.GREY_900 if new_dark else ft.Colors.WHITE
-        
-        header_text.color = ft.Colors.WHITE if new_dark else ft.Colors.BLACK
-        theme_icon.icon = ft.Icons.LIGHT_MODE_OUTLINED if new_dark else ft.Icons.DARK_MODE_OUTLINED
-        page.update()
+        SessionManager.set_theme_preference(page, not is_dark)
+        account_page(page, user_data)
     
-    
-    theme_icon = ft.IconButton(
-        icon=ft.Icons.LIGHT_MODE_OUTLINED if is_dark else ft.Icons.DARK_MODE_OUTLINED,
-        icon_color=ft.Colors.WHITE,
-        icon_size=24,
-        on_click=toggle_dark_theme,
-    )
-    
-    
-    header_text = ft.Text(
-        "Account",
-        size=18,
-        weight=ft.FontWeight.BOLD,
-        color=ft.Colors.WHITE if is_dark else ft.Colors.BLACK,
-    )
+    nav_drawer = NavigationDrawerComponent(page, user_data, toggle_dark_theme)
+    drawer = nav_drawer.create_drawer(is_dark)
     
     header = ft.Container(
         content=ft.Row(
             [
-                header_text,
-                theme_icon,
+                ft.Text(
+                    "Account",
+                    size=18,
+                    weight=ft.FontWeight.BOLD,
+                    color=ft.Colors.WHITE if is_dark else ft.Colors.BLACK,
+                ),
+                ft.IconButton(
+                    icon=ft.Icons.MENU,
+                    icon_color=ft.Colors.WHITE if is_dark else ft.Colors.BLACK,
+                    on_click=nav_drawer.open_drawer,
+                ),
             ],
             alignment=ft.MainAxisAlignment.SPACE_BETWEEN,
         ),
         padding=ft.padding.symmetric(horizontal=20, vertical=15),
+        bgcolor=ft.Colors.GREY_800 if is_dark else ft.Colors.WHITE,
+        shadow=ft.BoxShadow(
+            spread_radius=1,
+            blur_radius=10,
+            color=ft.Colors.with_opacity(0.2, ft.Colors.BLACK),
+            offset=ft.Offset(0, 2),
+        ),
     )
-    
     
     profile_card = ft.Container(
         content=ft.Column(
@@ -144,6 +142,7 @@ def account_page(page: ft.Page, user_data=None):
     page.theme_mode = ft.ThemeMode.DARK if is_dark else ft.ThemeMode.LIGHT
     page.bgcolor = ft.Colors.GREY_900 if is_dark else ft.Colors.WHITE
     page.overlay_color = ft.Colors.TRANSPARENT
+    page.end_drawer = drawer
     page.on_resized = update_layout
     page.add(responsive_wrapper)
     
