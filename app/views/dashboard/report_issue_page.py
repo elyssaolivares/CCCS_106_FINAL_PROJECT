@@ -1,11 +1,13 @@
 import flet as ft
 from app.services.database.database import db
 from app.services.ai.ai_services import predict_category
+from .session_manager import SessionManager
+from .navigation_drawer import NavigationDrawerComponent
 
 def report_issue_page(page: ft.Page, user_data=None):
 
-    page.controls.clear()   
-    
+    page.controls.clear()
+    page.floating_action_button = None
     
     if not user_data:
         user_data = page.session.get("user_data")
@@ -16,9 +18,7 @@ def report_issue_page(page: ft.Page, user_data=None):
         loginpage(page)
         return
     
-    
-    is_dark = page.session.get("is_dark_theme") or False
-    
+    is_dark = SessionManager.get_theme_preference(page)
     
     def show_success_dialog(category):
         dialog = ft.AlertDialog(
@@ -62,154 +62,15 @@ def report_issue_page(page: ft.Page, user_data=None):
     def close_dialog(dialog):
         dialog.open = False
         page.update()
-        from app.views.userdashboard import user_dashboard
+        from .userdashboard import user_dashboard
         user_dashboard(page, user_data)
-    
     
     def toggle_dark_theme(e):
-        current_dark = page.session.get("is_dark_theme") or False
-        new_dark = not current_dark
-        page.session.set("is_dark_theme", new_dark)
-        
-        
+        SessionManager.set_theme_preference(page, not is_dark)
         report_issue_page(page, user_data)
     
-    
-    theme_icon = ft.IconButton(
-        icon=ft.Icons.LIGHT_MODE_OUTLINED if is_dark else ft.Icons.DARK_MODE_OUTLINED,
-        icon_color=ft.Colors.WHITE,
-        icon_size=24,
-        on_click=toggle_dark_theme,
-    )
-    
-    
-    def close_drawer(e):
-        drawer.open = False
-        page.update()
-    
-    def menu_home_clicked(e):
-        close_drawer(e)
-        from app.views.userdashboard import user_dashboard
-        user_dashboard(page, user_data)
-    
-    def menu_reports_clicked(e):
-        close_drawer(e)
-    
-    def menu_account_clicked(e):
-        close_drawer(e)
-        from app.views.account_page import account_page
-        account_page(page, user_data)
-    
-    def menu_logout_clicked(e):
-        close_drawer(e)
-        page.session.clear()
-        page.controls.clear()
-        from app.views.loginpage import loginpage
-        loginpage(page)
-    
-    drawer = ft.NavigationDrawer(
-        controls=[
-            ft.Container(
-                content=ft.Row(
-                    [
-                        ft.Text(
-                            "Menu",
-                            size=20,
-                            weight=ft.FontWeight.BOLD,
-                            color=ft.Colors.WHITE,
-                        ),
-                        theme_icon,
-                    ],
-                    alignment=ft.MainAxisAlignment.SPACE_BETWEEN,
-                ),
-                padding=20,
-                bgcolor="#003D82",
-            ),
-            ft.Divider(height=1, color=ft.Colors.WHITE, thickness=1),
-            ft.Container(
-                content=ft.TextButton(
-                    content=ft.Row(
-                        [
-                            ft.Icon(ft.Icons.HOME_OUTLINED, color=ft.Colors.WHITE, size=20),
-                            ft.Text("Home", color=ft.Colors.WHITE, size=16, weight=ft.FontWeight.W_500),
-                        ],
-                        spacing=15,
-                        alignment=ft.MainAxisAlignment.START,
-                    ),
-                    on_click=menu_home_clicked,
-                    style=ft.ButtonStyle(
-                        padding=15,
-                        shape=ft.RoundedRectangleBorder(radius=0),
-                        overlay_color=ft.Colors.with_opacity(0.2, ft.Colors.WHITE),
-                    ),
-                ),
-                padding=ft.padding.symmetric(horizontal=10, vertical=2),
-            ),
-            ft.Container(
-                content=ft.TextButton(
-                    content=ft.Row(
-                        [
-                            ft.Icon(ft.Icons.DESCRIPTION_OUTLINED, color=ft.Colors.WHITE, size=20),
-                            ft.Text("Reports", color=ft.Colors.WHITE, size=16, weight=ft.FontWeight.W_500),
-                        ],
-                        spacing=15,
-                        alignment=ft.MainAxisAlignment.START,
-                    ),
-                    on_click=menu_reports_clicked,
-                    style=ft.ButtonStyle(
-                        padding=15,
-                        shape=ft.RoundedRectangleBorder(radius=0),
-                        overlay_color=ft.Colors.with_opacity(0.2, ft.Colors.WHITE),
-                    ),
-                ),
-                padding=ft.padding.symmetric(horizontal=10, vertical=2),
-            ),
-            ft.Container(
-                content=ft.TextButton(
-                    content=ft.Row(
-                        [
-                            ft.Icon(ft.Icons.ACCOUNT_CIRCLE_OUTLINED, color=ft.Colors.WHITE, size=20),
-                            ft.Text("Account", color=ft.Colors.WHITE, size=16, weight=ft.FontWeight.W_500),
-                        ],
-                        spacing=15,
-                        alignment=ft.MainAxisAlignment.START,
-                    ),
-                    on_click=menu_account_clicked,
-                    style=ft.ButtonStyle(
-                        padding=15,
-                        shape=ft.RoundedRectangleBorder(radius=0),
-                        overlay_color=ft.Colors.with_opacity(0.2, ft.Colors.WHITE),
-                    ),
-                ),
-                padding=ft.padding.symmetric(horizontal=10, vertical=2),
-            ),
-            ft.Container(
-                content=ft.TextButton(
-                    content=ft.Row(
-                        [
-                            ft.Icon(ft.Icons.LOGOUT_OUTLINED, color=ft.Colors.WHITE, size=20),
-                            ft.Text("Logout", color=ft.Colors.WHITE, size=16, weight=ft.FontWeight.W_500),
-                        ],
-                        spacing=15,
-                        alignment=ft.MainAxisAlignment.START,
-                    ),
-                    on_click=menu_logout_clicked,
-                    style=ft.ButtonStyle(
-                        padding=15,
-                        shape=ft.RoundedRectangleBorder(radius=0),
-                        overlay_color=ft.Colors.with_opacity(0.2, ft.Colors.WHITE),
-                    ),
-                ),
-                padding=ft.padding.symmetric(horizontal=10, vertical=2),
-            ),
-        ],
-        bgcolor="#003D82",
-    )
-    
-    def open_drawer(e):
-        drawer.open = True
-        page.update()
-    
+    nav_drawer = NavigationDrawerComponent(page, user_data, toggle_dark_theme)
+    drawer = nav_drawer.create_drawer(is_dark)
     
     header = ft.Container(
         content=ft.Row(
@@ -223,7 +84,7 @@ def report_issue_page(page: ft.Page, user_data=None):
                 ft.IconButton(
                     icon=ft.Icons.MENU,
                     icon_color=ft.Colors.WHITE if is_dark else ft.Colors.BLACK,
-                    on_click=open_drawer,
+                    on_click=nav_drawer.open_drawer,
                 ),
             ],
             alignment=ft.MainAxisAlignment.SPACE_BETWEEN,
@@ -237,7 +98,6 @@ def report_issue_page(page: ft.Page, user_data=None):
             offset=ft.Offset(0, 2),
         ),
     )
-    
     
     issue_description_field = ft.TextField(
         multiline=True,
@@ -265,7 +125,6 @@ def report_issue_page(page: ft.Page, user_data=None):
         hint_style=ft.TextStyle(color=ft.Colors.GREY_400),
     )
     
-    
     submit_button = ft.ElevatedButton(
         text="SUBMIT",
         bgcolor=ft.Colors.DEEP_ORANGE_400,
@@ -278,11 +137,9 @@ def report_issue_page(page: ft.Page, user_data=None):
         ),
     )
     
-    
     def submit_clicked(e):
         issue_desc = issue_description_field.value
         location = location_field.value
-        
         
         if not issue_desc or not issue_desc.strip():
             snackbar = ft.SnackBar(
@@ -304,13 +161,11 @@ def report_issue_page(page: ft.Page, user_data=None):
             page.update()
             return
         
-        
         try:
             category = predict_category(issue_desc)
         except Exception as ex:
             print(f"Error predicting category: {ex}")
             category = "Uncategorized"
-        
         
         try:
             user_email = user_data.get("email")
@@ -327,7 +182,6 @@ def report_issue_page(page: ft.Page, user_data=None):
                 page.update()
                 return
             
-            
             report_id = db.add_report(
                 user_email=user_email,
                 user_name=user_name,
@@ -339,10 +193,8 @@ def report_issue_page(page: ft.Page, user_data=None):
             
             print(f"Report saved with ID: {report_id}, Category: {category}")
             
-            
             issue_description_field.value = ""
             location_field.value = ""
-            
             
             show_success_dialog(category)
             
@@ -355,7 +207,6 @@ def report_issue_page(page: ft.Page, user_data=None):
             page.overlay.append(snackbar)
             snackbar.open = True
             page.update()
-    
     
     form_content = ft.Column(
         [
@@ -405,10 +256,8 @@ def report_issue_page(page: ft.Page, user_data=None):
         expand=True,
     )
     
-    
     page.theme_mode = ft.ThemeMode.DARK if is_dark else ft.ThemeMode.LIGHT
     page.bgcolor = ft.Colors.GREY_900 if is_dark else ft.Colors.WHITE
-    page.overlay_color = ft.Colors.TRANSPARENT
     page.end_drawer = drawer
     page.add(responsive_wrapper)
     page.update()
