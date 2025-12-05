@@ -21,35 +21,32 @@ def report_issue_page(page: ft.Page, user_data=None):
     is_dark = SessionManager.get_theme_preference(page)
     
     def show_success_dialog(category):
-        glass_bg = ft.Colors.with_opacity(0.1, ft.Colors.WHITE if not is_dark else ft.Colors.BLACK)
-
         dialog = ft.AlertDialog(
             modal=True,
-            bgcolor=ft.Colors.TRANSPARENT,  # keep page background transparent
             content=ft.Container(
-                width=100,
                 border_radius=10,
-                bgcolor=glass_bg,
-                shadow=ft.BoxShadow(
-                    spread_radius=1,
-                    blur_radius=15,
-                    color=ft.Colors.with_opacity(0.25, ft.Colors.BLACK),
-                ),
+                padding=ft.padding.all(20),
+                
                 content=ft.Column(
                     [
+                        ft.Icon(
+                            name=ft.Icons.CHECK_CIRCLE,
+                            size=48,
+                            color=ft.Colors.GREEN_400,
+                        ),
+                        ft.Container(height=12),
                         ft.Text(
                             "Report successfully submitted!",
                             size=16,
                             weight=ft.FontWeight.BOLD,
-                            color=ft.Colors.BLACK,
+                            color=ft.Colors.WHITE if is_dark else ft.Colors.BLACK,
                             text_align=ft.TextAlign.CENTER,
                         ),
-                        ft.Container(height=10),
+                        ft.Container(height=25),
                         ft.ElevatedButton(
                             text="Ok",
                             bgcolor="#062C80",
                             color=ft.Colors.WHITE,
-                            width=100,
                             on_click=lambda e: close_dialog(dialog),
                             style=ft.ButtonStyle(
                                 shape=ft.RoundedRectangleBorder(radius=5),
@@ -57,6 +54,7 @@ def report_issue_page(page: ft.Page, user_data=None):
                         ),
                     ],
                     horizontal_alignment=ft.CrossAxisAlignment.CENTER,
+                    tight=True,
                 ),
             ),
         )
