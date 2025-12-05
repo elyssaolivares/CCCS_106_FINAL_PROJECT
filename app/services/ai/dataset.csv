@@ -1,0 +1,83 @@
+text,label
+broken chair,Classroom & Furniture
+damaged table,Classroom & Furniture
+broken desk,Classroom & Furniture
+doorknob,Furniture
+broken chair leg,Classroom & Furniture
+loose table screw,Classroom & Furniture
+scratched desk surface,Classroom & Furniture
+flickering light,Building & Facilities
+wire,Building & Facilities
+no electricity,Building & Facilities
+broken bulb,Building & Facilities
+leaking roof,Building & Facilities
+broken window,Building & Facilities
+door stuck,Building & Facilities
+broken handle,Building & Facilities
+leaking faucet,Plumbing
+clogged sink,Plumbing
+pipe leaking,Plumbing
+slow draining sink,Plumbing
+leaking toilet,Plumbing
+broken toilet flush,Plumbing
+wifi,ICT & Equipment
+no wifi,ICT & Equipment
+broken wifi,ICT & Equipment
+internet,ICT & Equipment
+no internet connection,ICT & Equipment
+malfunctioning projector,ICT & Equipment
+computer not working,ICT & Equipment
+printer not working,ICT & Equipment
+full trashcan,Cleaning & Sanitation
+overflowing trashcan,Cleaning & Sanitation
+dirty floor,Cleaning & Sanitation
+dusty shelves,Cleaning & Sanitation
+unclean restroom,Cleaning & Sanitation
+spilled water,Cleaning & Sanitation
+garbage smell,Cleaning & Sanitation
+mold on walls,Building & Facilities
+broken stairs,Building & Facilities
+blocked fire exit,Building & Facilities
+loose tiles,Building & Facilities
+broken AC,Building & Facilities
+no hot water,Plumbing
+leaking shower,Plumbing
+clogged drain,Plumbing
+broken monitor,ICT & Equipment
+slow internet,ICT & Equipment
+broken keyboard,ICT & Equipment
+malfunctioning mouse,ICT & Equipment
+low ink printer,ICT & Equipment
+full paper tray printer,ICT & Equipment
+dirty whiteboard,Cleaning & Sanitation
+stained carpet,Cleaning & Sanitation
+overflowing recycling bin,Cleaning & Sanitation
+unemptied trash bin,Cleaning & Sanitation
+broken vending machine,Building & Facilities
+jammed vending machine,Building & Facilities
+leaking pipe,Plumbing
+clogged toilet,Plumbing
+broken router,ICT & Equipment
+slow computer,ICT & Equipment
+frozen screen,ICT & Equipment
+unresponsive touchscreen,ICT & Equipment
+low toner printer,ICT & Equipment
+paper jam printer,ICT & Equipment
+dirty windows,Cleaning & Sanitation
+smudged glass doors,Cleaning & Sanitation
+dusty furniture,Cleaning & Sanitation
+untidy hallway,Cleaning & Sanitation
+full compost bin,Cleaning & Sanitation
+leaking sink pipe,Plumbing
+clogged bathroom sink,Plumbing
+running toilet,Plumbing
+broken ethernet cable,ICT & Equipment
+slow wifi connection,ICT & Equipment
+unavailable network,ICT & Equipment
+printer offline,ICT & Equipment
+low battery laptop,ICT & Equipment
+overheating computer,ICT & Equipment
+broken chair armrest,Classroom & Furniture
+loose table leg,Classroom & Furniture
+scratched desk leg,Classroom & Furniture
+broken light switch,Building & Facilities
