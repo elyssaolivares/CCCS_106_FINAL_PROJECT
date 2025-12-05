@@ -9,7 +9,7 @@ class DashboardUI:
                 ft.Text(
                     f"{first_name}'s Dashboard" + (" (Admin)" if user_type == "admin" else ""),
                     size=20,
-                    weight=ft.FontWeight.BOLD,
+                    font_family="Poppins-Bold",
                     color=ft.Colors.WHITE if is_dark else ft.Colors.BLACK,
                 ),
                 ft.IconButton(
@@ -35,35 +35,25 @@ class DashboardUI:
             [
                 ft.Container(
                     content=ft.Column([
-                        ft.Text("Total Reports", size=12, color="#DA5656"),
-                        ft.Text(str(total_issues), size=24, weight=ft.FontWeight.BOLD, color="#DA5656")
+                        ft.Text("Total Reports", size=14, font_family="Poppins-Bold", color="#DA5656"),
+                        ft.Text(str(total_issues), size=30, font_family="Poppins-Bold", color="#DA5656")
                     ]),
-                    padding=15,
+                    padding=30,
                     bgcolor="#FFEBEB",
                     border_radius=10,
                     expand=True,
-                    shadow=ft.BoxShadow(
-                        spread_radius=1,
-                        blur_radius=8,
-                        color=ft.Colors.with_opacity(0.15, ft.Colors.BLACK),
-                        offset=ft.Offset(0, 2),
-                    ),
+                    
                 ),
                 ft.Container(
                     content=ft.Column([
-                        ft.Text("Resolved", size=12, color="#70B172"),
-                        ft.Text(str(resolved_issues), size=24, weight=ft.FontWeight.BOLD, color="#70B172")
+                        ft.Text("Resolved", size=14, font_family="Poppins-Bold",color="#70B172"),
+                        ft.Text(str(resolved_issues), size=30, font_family="Poppins-Bold", color="#70B172")
                     ]),
-                    padding=15,
+                    padding=30,
                     bgcolor="#E3F4DB",
                     border_radius=10,
                     expand=True,
-                    shadow=ft.BoxShadow(
-                        spread_radius=1,
-                        blur_radius=8,
-                        color=ft.Colors.with_opacity(0.15, ft.Colors.BLACK),
-                        offset=ft.Offset(0, 2),
-                    ),
+                    
                 ),
             ],
             spacing=10
@@ -80,8 +70,13 @@ class DashboardUI:
             bgcolor="#062C80",
             color=ft.Colors.WHITE,
             expand=True,
-            style=ft.ButtonStyle(shape=ft.RoundedRectangleBorder(radius=5)),
-        )
+            style=ft.ButtonStyle(
+                shape=ft.RoundedRectangleBorder(radius=5),
+                text_style=ft.TextStyle(
+                    font_family="Poppins-Bold", size=10
+            ),
+        ),
+            )
         filter_button_refs["Pending"] = pending_btn
         
         ongoing_btn = ft.ElevatedButton(
@@ -90,8 +85,10 @@ class DashboardUI:
             bgcolor=ft.Colors.WHITE,
             color=ft.Colors.BLACK,
             expand=True,
-            style=ft.ButtonStyle(shape=ft.RoundedRectangleBorder(radius=5)),
-        )
+            style=ft.ButtonStyle(shape=ft.RoundedRectangleBorder(radius=5),
+                                 text_style=ft.TextStyle(
+                    font_family="Poppins-Bold", size=10),
+        ))
         filter_button_refs["In Progress"] = ongoing_btn
         
         resolved_btn = ft.ElevatedButton(
@@ -100,7 +97,9 @@ class DashboardUI:
             bgcolor=ft.Colors.WHITE,
             color=ft.Colors.BLACK,
             expand=True,
-            style=ft.ButtonStyle(shape=ft.RoundedRectangleBorder(radius=5)),
+            style=ft.ButtonStyle(shape=ft.RoundedRectangleBorder(radius=5),
+                                 text_style=ft.TextStyle(
+                    font_family="Poppins-Bold", size=10)),
         )
         filter_button_refs["Resolved"] = resolved_btn
         
@@ -110,7 +109,9 @@ class DashboardUI:
             bgcolor=ft.Colors.WHITE,
             color=ft.Colors.BLACK,
             expand=True,
-            style=ft.ButtonStyle(shape=ft.RoundedRectangleBorder(radius=5)),
+            style=ft.ButtonStyle(shape=ft.RoundedRectangleBorder(radius=5),
+                                 text_style=ft.TextStyle(
+                    font_family="Poppins-Bold", size=10)),
         )
         filter_button_refs["Rejected"] = rejected_btn
         
@@ -130,7 +131,7 @@ class DashboardUI:
                 ft.Text(
                     f"Welcome, {first_name}",
                     size=28,
-                    weight=ft.FontWeight.BOLD,
+                    font_family="Poppins-Bold",
                     color="#062C80",
                 ),
                 ft.Container(height=30),
