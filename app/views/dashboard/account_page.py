@@ -30,8 +30,8 @@ def account_page(page: ft.Page, user_data=None):
             [
                 ft.Text(
                     "Account",
-                    size=18,
-                    font_family="Poppins-SemiBold",
+                    size=20,
+                    font_family="Poppins-Bold",
                     color=ft.Colors.WHITE if is_dark else ft.Colors.BLACK,
                 ),
                 ft.IconButton(
@@ -56,8 +56,8 @@ def account_page(page: ft.Page, user_data=None):
     profile_image = ft.Container(
         content=ft.Image(
             src=picture,
-            width=100,
-            height=100,
+            width=120,
+            height=120,
             fit=ft.ImageFit.COVER,
         ) if picture else ft.Icon(
             ft.Icons.ACCOUNT_CIRCLE,
@@ -77,7 +77,7 @@ def account_page(page: ft.Page, user_data=None):
                 profile_image,
                 ft.Container(height=25),
                 ft.Text(
-                    full_name,
+                    full_name.upper(),
                     size=26,
                     font_family="Poppins-SemiBold",
                     color=ft.Colors.WHITE if is_dark else ft.Colors.BLACK,
@@ -89,7 +89,7 @@ def account_page(page: ft.Page, user_data=None):
                         role,
                         size=14,
                         font_family="Poppins-Medium",
-                        color=ft.Colors.WHITE70,
+                        color=ft.Colors.WHITE,
                     ),
                     padding=ft.padding.symmetric(horizontal=12, vertical=4),
                     bgcolor="#062C80" if is_dark else "#093AA5",
@@ -100,7 +100,7 @@ def account_page(page: ft.Page, user_data=None):
                 ft.Container(height=20),
                 ft.Row(
                     [
-                        ft.Icon(ft.Icons.EMAIL, color=ft.Colors.GREY_500, size=20),
+                        ft.Icon(ft.Icons.EMAIL, color=ft.Colors.GREY, size=20),
                         ft.Container(width=10),
                         ft.Text(
                             email,
