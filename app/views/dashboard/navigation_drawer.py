@@ -82,13 +82,13 @@ class NavigationDrawerComponent:
     def _menu_reports_clicked(self, e):
         
         self._close_drawer()
-        from app.views.report_issue_page import report_issue_page
+        from .report_issue_page import report_issue_page
         report_issue_page(self.page, self.user_data)
     
     def _menu_account_clicked(self, e):
         
         self._close_drawer()
-        from app.views.account_page import account_page
+        from .account_page import account_page
         account_page(self.page, self.user_data)
     
     def _menu_logout_clicked(self, e):
