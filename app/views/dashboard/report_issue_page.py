@@ -86,8 +86,8 @@ def report_issue_page(page: ft.Page, user_data=None):
             [
                 ft.Text(
                     "Add Report",
-                    size=18,
-                    weight=ft.FontWeight.BOLD,
+                    size=20,
+                    font_family="Poppins-Bold",
                     color=ft.Colors.WHITE if is_dark else ft.Colors.BLACK,
                 ),
                 ft.IconButton(
@@ -114,7 +114,7 @@ def report_issue_page(page: ft.Page, user_data=None):
         max_lines=5,
         hint_text="Describe the issue here...",
         border_color=ft.Colors.BLUE_900,
-        border_width=2,
+        border_width=1,
         border_radius=10,
         bgcolor=ft.Colors.GREY_800 if is_dark else ft.Colors.WHITE,
         color=ft.Colors.WHITE if is_dark else ft.Colors.BLACK,
@@ -127,7 +127,7 @@ def report_issue_page(page: ft.Page, user_data=None):
         max_lines=3,
         hint_text="Enter location...",
         border_color=ft.Colors.BLUE_900,
-        border_width=2,
+        border_width=1,
         border_radius=10,
         bgcolor=ft.Colors.GREY_800 if is_dark else ft.Colors.WHITE,
         color=ft.Colors.WHITE if is_dark else ft.Colors.BLACK,
@@ -136,9 +136,9 @@ def report_issue_page(page: ft.Page, user_data=None):
     
     submit_button = ft.ElevatedButton(
         text="SUBMIT",
-        bgcolor=ft.Colors.DEEP_ORANGE_400,
+        bgcolor="#EE7738",
+        width=150,
         color=ft.Colors.WHITE,
-        width=100,
         height=40,
         on_click=lambda e: submit_clicked(e),
         style=ft.ButtonStyle(
@@ -237,13 +237,12 @@ def report_issue_page(page: ft.Page, user_data=None):
             ft.Container(height=5),
             location_field,
             ft.Container(height=25),
-            ft.Container(
-                content=submit_button,
-                alignment=ft.alignment.center_right,
-            ),
+            submit_button,
+            
         ],
         spacing=0,
     )
+
     
     main_container = ft.Container(
         content=form_content,
