@@ -21,11 +21,11 @@ class NavigationDrawerComponent:
                 self._create_header(theme_icon),
                 ft.Divider(height=1, color=ft.Colors.WHITE, thickness=1),
                 self._create_menu_item(ft.Icons.HOME_OUTLINED, "Home", self._menu_home_clicked),
-                self._create_menu_item(ft.Icons.DESCRIPTION_OUTLINED, "Reports", self._menu_reports_clicked),
+                self._create_menu_item(ft.Icons.DESCRIPTION_OUTLINED, "Report", self._menu_reports_clicked),
                 self._create_menu_item(ft.Icons.ACCOUNT_CIRCLE_OUTLINED, "Account", self._menu_account_clicked),
                 self._create_menu_item(ft.Icons.LOGOUT_OUTLINED, "Logout", self._menu_logout_clicked),
             ],
-            bgcolor="#003D82",
+            bgcolor="#062C80",
         )
         return self.drawer
     
@@ -34,13 +34,13 @@ class NavigationDrawerComponent:
         return ft.Container(
             content=ft.Row(
                 [
-                    ft.Text("Menu", size=20, weight=ft.FontWeight.BOLD, color=ft.Colors.WHITE),
+                    ft.Text("Menu", size=20, font_family="Poppins-SemiBold", color=ft.Colors.WHITE),
                     theme_icon,
                 ],
                 alignment=ft.MainAxisAlignment.SPACE_BETWEEN,
             ),
             padding=20,
-            bgcolor="#003D82",
+            bgcolor="#062C80",
         )
     
     def _create_menu_item(self, icon, text, on_click):
@@ -50,7 +50,7 @@ class NavigationDrawerComponent:
                 content=ft.Row(
                     [
                         ft.Icon(icon, color=ft.Colors.WHITE, size=20),
-                        ft.Text(text, color=ft.Colors.WHITE, size=16, weight=ft.FontWeight.W_500),
+                        ft.Text(text, color=ft.Colors.WHITE, size=16, font_family="Poppins-SemiBold"),
                     ],
                     spacing=15,
                     alignment=ft.MainAxisAlignment.START,
