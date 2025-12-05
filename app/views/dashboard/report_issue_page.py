@@ -21,8 +21,20 @@ def report_issue_page(page: ft.Page, user_data=None):
     is_dark = SessionManager.get_theme_preference(page)
     
     def show_success_dialog(category):
+        glass_bg = ft.Colors.with_opacity(0.1, ft.Colors.WHITE if not is_dark else ft.Colors.BLACK)
+
         dialog = ft.AlertDialog(
+            modal=True,
+            bgcolor=ft.Colors.TRANSPARENT,  # keep page background transparent
             content=ft.Container(
+                width=100,
+                border_radius=10,
+                bgcolor=glass_bg,
+                shadow=ft.BoxShadow(
+                    spread_radius=1,
+                    blur_radius=15,
+                    color=ft.Colors.with_opacity(0.25, ft.Colors.BLACK),
+                ),
                 content=ft.Column(
                     [
                         ft.Text(
@@ -32,7 +44,7 @@ def report_issue_page(page: ft.Page, user_data=None):
                             color=ft.Colors.BLACK,
                             text_align=ft.TextAlign.CENTER,
                         ),
-                        ft.Container(height=20),
+                        ft.Container(height=10),
                         ft.ElevatedButton(
                             text="Ok",
                             bgcolor="#062C80",
@@ -45,24 +57,23 @@ def report_issue_page(page: ft.Page, user_data=None):
                         ),
                     ],
                     horizontal_alignment=ft.CrossAxisAlignment.CENTER,
-                    spacing=0,
                 ),
-                padding=20,
-                bgcolor=ft.Colors.WHITE,
-                border_radius=10,
             ),
-            modal=True,
-            bgcolor=ft.Colors.TRANSPARENT,
         )
 
         page.dialog = dialog
+
+        if dialog not in page.overlay:
+            page.overlay.append(dialog)
+
         dialog.open = True
         page.update()
+
     
     def close_dialog(dialog):
         dialog.open = False
         page.update()
-        from .userdashboard import user_dashboard
+        from .user_dashboard import user_dashboard
         user_dashboard(page, user_data)
     
     def toggle_dark_theme(e):
