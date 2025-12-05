@@ -1,5 +1,5 @@
 import flet as ft
-from app.views.report_issue_page import report_issue_page
+from .report_issue_page import report_issue_page
 from app.services.database.database import db
 from .session_manager import SessionManager
 from .report_statistics import ReportStatistics
