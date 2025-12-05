@@ -12,6 +12,7 @@ def account_page(page: ft.Page, user_data=None):
     full_name = user_data.get("name", "User") if user_data else "User"
     role = user_data.get("role", "Student").title() if user_data else "Student"
     email = user_data.get("email", "user@example.com") if user_data else "user@example.com"
+    picture = user_data.get("picture") if user_data else None
     
     
     is_dark = page.session.get("is_dark_theme") or False
@@ -30,7 +31,7 @@ def account_page(page: ft.Page, user_data=None):
                 ft.Text(
                     "Account",
                     size=18,
-                    weight=ft.FontWeight.BOLD,
+                    font_family="Poppins-SemiBold",
                     color=ft.Colors.WHITE if is_dark else ft.Colors.BLACK,
                 ),
                 ft.IconButton(
@@ -51,62 +52,74 @@ def account_page(page: ft.Page, user_data=None):
         ),
     )
     
+    # Profile picture or default icon
+    profile_image = ft.Container(
+        content=ft.Image(
+            src=picture,
+            width=100,
+            height=100,
+            fit=ft.ImageFit.COVER,
+        ) if picture else ft.Icon(
+            ft.Icons.ACCOUNT_CIRCLE,
+            size=100,
+            color="#062C80",
+        ),
+        width=120,
+        height=120,
+        border_radius=60,
+        alignment=ft.alignment.center,
+    )
+    
     profile_card = ft.Container(
         content=ft.Column(
             [
-                ft.Container(height=30),
-                
-                ft.Container(
-                    content=ft.Icon(
-                        ft.Icons.ACCOUNT_CIRCLE,
-                        size=80,
-                        color=ft.Colors.WHITE,
-                    ),
-                    alignment=ft.alignment.center,
-                ),
                 ft.Container(height=20),
-                
+                profile_image,
+                ft.Container(height=25),
                 ft.Text(
                     full_name,
-                    size=24,
-                    weight=ft.FontWeight.BOLD,
-                    color=ft.Colors.WHITE,
+                    size=26,
+                    font_family="Poppins-SemiBold",
+                    color=ft.Colors.WHITE if is_dark else ft.Colors.BLACK,
                     text_align=ft.TextAlign.CENTER,
                 ),
-                ft.Container(height=5),
-                
+                ft.Container(height=8),
                 ft.Container(
-                    width=200,
-                    height=2,
-                    bgcolor=ft.Colors.WHITE,
-                ),
-                ft.Container(height=5),
-                
-                ft.Text(
-                    role,
-                    size=16,
-                    weight=ft.FontWeight.W_500,
-                    color=ft.Colors.WHITE,
-                    text_align=ft.TextAlign.CENTER,
+                    content=ft.Text(
+                        role,
+                        size=14,
+                        font_family="Poppins-Medium",
+                        color=ft.Colors.WHITE70,
+                    ),
+                    padding=ft.padding.symmetric(horizontal=12, vertical=4),
+                    bgcolor="#062C80" if is_dark else "#093AA5",
+                    border_radius=20,
                 ),
                 ft.Container(height=20),
-                
-                ft.Text(
-                    email,
-                    size=14,
-                    color=ft.Colors.WHITE,
-                    text_align=ft.TextAlign.CENTER,
+                ft.Divider(height=2, color=ft.Colors.GREY_600 if is_dark else ft.Colors.GREY_300),
+                ft.Container(height=20),
+                ft.Row(
+                    [
+                        ft.Icon(ft.Icons.EMAIL, color=ft.Colors.GREY_500, size=20),
+                        ft.Container(width=10),
+                        ft.Text(
+                            email,
+                            size=14,
+                            color=ft.Colors.WHITE if is_dark else ft.Colors.BLACK,
+                        ),
+                    ],
+                    alignment=ft.MainAxisAlignment.CENTER,
                 ),
                 ft.Container(height=30),
             ],
             horizontal_alignment=ft.CrossAxisAlignment.CENTER,
             spacing=0,
         ),
-        bgcolor="#062C80",
-        border_radius=15,
-        padding=20,
-        width=900,
-    )
+        padding=ft.padding.all(30),
+        width=500
+        
+        )
+    
     
     
     def update_layout(e=None):
