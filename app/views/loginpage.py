@@ -1,6 +1,7 @@
 import flet as ft
 from app.services.google.google_auth import google_oauth_login
 from app.services.auth.admin_account import validate_admin_credentials
+from app.views.dashboard.admin.admin_dashboard import admin_dashboard
 from app.views.dashboard.user_dashboard import user_dashboard
 
 def loginpage(page: ft.Page):
@@ -111,7 +112,7 @@ def loginpage(page: ft.Page):
             return
         
         try:
-            user_info = google_oauth_login()
+            user_info = google_oauth_login(page)
             email = user_info["email"]
             name = user_info["name"]
             
