@@ -6,6 +6,7 @@ class NavigationDrawerComponent:
         self.user_data = user_data
         self.on_theme_toggle = on_theme_toggle
         self.drawer = None
+        self.is_admin = user_data.get("type") == "admin" if user_data else False
     
     def create_drawer(self, is_dark):
         
@@ -16,15 +17,28 @@ class NavigationDrawerComponent:
             on_click=self._toggle_theme,
         )
         
-        self.drawer = ft.NavigationDrawer(
-            controls=[
+        
+        if self.is_admin:
+            menu_items = [
+                self._create_header(theme_icon),
+                ft.Divider(height=1, color=ft.Colors.WHITE, thickness=1),
+                self._create_menu_item(ft.Icons.DASHBOARD_OUTLINED, "Dashboard", self._menu_admin_home_clicked),
+                self._create_menu_item(ft.Icons.DESCRIPTION_OUTLINED, "Reports", self._menu_admin_reports_clicked),
+                self._create_menu_item(ft.Icons.ACCOUNT_CIRCLE_OUTLINED, "Account", self._menu_account_clicked),
+                self._create_menu_item(ft.Icons.LOGOUT_OUTLINED, "Logout", self._menu_logout_clicked),
+            ]
+        else:
+            menu_items = [
                 self._create_header(theme_icon),
                 ft.Divider(height=1, color=ft.Colors.WHITE, thickness=1),
                 self._create_menu_item(ft.Icons.HOME_OUTLINED, "Home", self._menu_home_clicked),
                 self._create_menu_item(ft.Icons.DESCRIPTION_OUTLINED, "Report", self._menu_reports_clicked),
                 self._create_menu_item(ft.Icons.ACCOUNT_CIRCLE_OUTLINED, "Account", self._menu_account_clicked),
                 self._create_menu_item(ft.Icons.LOGOUT_OUTLINED, "Logout", self._menu_logout_clicked),
-            ],
+            ]
+        
+        self.drawer = ft.NavigationDrawer(
+            controls=menu_items,
             bgcolor="#062C80",
         )
         return self.drawer
@@ -82,11 +96,23 @@ class NavigationDrawerComponent:
         from .user_dashboard import user_dashboard
         user_dashboard(self.page, self.user_data)
     
+    def _menu_admin_home_clicked(self, e):
+        
+        self._close_drawer()
+        from app.views.dashboard.admin.admin_dashboard import admin_dashboard
+        admin_dashboard(self.page, self.user_data)
+    
     def _menu_reports_clicked(self, e):
         
         self._close_drawer()
         from .report_issue_page import report_issue_page
         report_issue_page(self.page, self.user_data)
+    
+    def _menu_admin_reports_clicked(self, e):
+        
+        self._close_drawer()
+        from app.views.dashboard.admin.admin_all_reports import admin_all_reports
+        admin_all_reports(self.page, self.user_data)
     
     def _menu_account_clicked(self, e):
         
