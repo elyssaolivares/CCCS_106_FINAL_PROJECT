@@ -40,4 +40,27 @@ class DataManager:
     def filter_reports_by_status(reports, status_filter):
         target = StatusNormalizer.normalize(status_filter)
         return [r for r in reports if target in StatusNormalizer.normalize(r.get('status'))]
+    
+    @staticmethod
+    def calculate_category_counts(reports):
+        
+        counts = {}
+        for report in reports:
+            category = report.get('category', 'Uncategorized')
+            counts[category] = counts.get(category, 0) + 1
+        return counts
+    
+    @staticmethod
+    def get_top_categories(reports, limit=5):
+        """Get top N categories by report count"""
+        category_counts = DataManager.calculate_category_counts(reports)
+        sorted_categories = sorted(category_counts.items(), key=lambda x: x[1], reverse=True)
+        return sorted_categories[:limit]
+    
+    @staticmethod
+    def filter_reports_by_category(reports, category):
+        
+        if not category or category == "All":
+            return reports
+        return [r for r in reports if r.get('category', 'Uncategorized') == category]
 
