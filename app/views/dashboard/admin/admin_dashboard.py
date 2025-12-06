@@ -1,7 +1,3 @@
-# ============================================
-# FILE 1: admin_dashboard.py
-# ============================================
-
 import flet as ft
 from app.services.database.database import db
 from app.views.dashboard.session_manager import SessionManager
@@ -39,21 +35,55 @@ def admin_dashboard(page: ft.Page, user_data=None):
     
     header = ui_components.create_header(is_dark, nav_drawer.open_drawer)
     
+    def navigate_to_all_categories(e):
+        from .admin_all_reports import admin_all_reports
+        admin_all_reports(page, user_data)
+    
     main_content = ft.Column(
         [
-            ft.Text("Reports Overview", size=18, weight=ft.FontWeight.BOLD,
+            ft.Text("Reports Summary", size=16, font_family="Poppins-Bold",
                     color=ft.Colors.WHITE if is_dark else ft.Colors.BLACK),
-            ft.Container(height=16),
-            state.stats_row,
-            ft.Container(height=20),
-            state.tab_buttons,
-            ft.Container(height=16),
+            ft.Container(height=12),
             ft.Container(
-                content=state.reports_list,
+                content=state.stats_row,
+                bgcolor=ft.Colors.with_opacity(0.02, ft.Colors.WHITE) if is_dark else ft.Colors.with_opacity(0.02, ft.Colors.BLACK),
+                padding=ft.padding.all(12),
+                border_radius=10,
+            ),
+            
+            ft.Container(height=20),
+            ft.Row(
+                [
+                    ft.Text("AI-Categorized Reports", size=14, font_family="Poppins-SemiBold",
+                           color=ft.Colors.WHITE if is_dark else ft.Colors.BLACK),
+                    ft.TextButton(
+                        "Show All Reports",
+                        on_click=navigate_to_all_categories,
+                        style=ft.ButtonStyle(
+                            color=ft.Colors.BLUE_400,
+                            padding=ft.padding.symmetric(horizontal=12, vertical=4),
+                        ),
+                    ),
+                ],
+                alignment=ft.MainAxisAlignment.SPACE_BETWEEN,
+                wrap=True,
+            ),
+            ft.Container(height=10),
+            ft.Text("Filter by Status:", size=12, color=ft.Colors.GREY_400),
+            ft.Container(height=8),
+            ft.Container(
+                content=state.category_filter_buttons,
+                bgcolor=ft.Colors.with_opacity(0.02, ft.Colors.WHITE) if is_dark else ft.Colors.with_opacity(0.02, ft.Colors.BLACK),
+                padding=ft.padding.all(8),
+                border_radius=8,
+            ),
+            ft.Container(height=12),
+            ft.Container(
+                content=state.category_list_view,
                 expand=True,
                 bgcolor=ft.Colors.with_opacity(0.02, ft.Colors.WHITE) if is_dark else ft.Colors.with_opacity(0.02, ft.Colors.BLACK),
+                padding=ft.padding.all(12),
                 border_radius=10,
-                padding=ft.padding.all(4),
             ),
         ],
         spacing=0,
@@ -82,6 +112,6 @@ def admin_dashboard(page: ft.Page, user_data=None):
     
     page.add(page_layout)
     
-    controller.refresh_dashboard(state.current_status)
+    controller.refresh_dashboard()
     page.update()
 
