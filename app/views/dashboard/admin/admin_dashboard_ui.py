@@ -135,7 +135,7 @@ class UIComponents:
                 tight=True,
             ),
             padding=ft.padding.all(16),
-            bgcolor="#0A3A7A",
+            bgcolor="#1E5BA8",
             border_radius=10,
             margin=ft.margin.only(bottom=12),
             border=ft.border.all(1, ft.Colors.with_opacity(0.1, ft.Colors.WHITE)),
@@ -182,5 +182,74 @@ class UIComponents:
                 color=ft.Colors.with_opacity(0.2, ft.Colors.BLACK),
                 offset=ft.Offset(0, 2)
             ),
+        )
+    
+    @staticmethod
+    def create_category_list_item(category_name, count, on_click):
+        """Create full-width category list item"""
+        return ft.Container(
+            content=ft.Row(
+                [
+                    ft.Text(
+                        category_name,
+                        size=14,
+                        font_family="Poppins-SemiBold",
+                        color=ft.Colors.BLACK,
+                        expand=True,
+                    ),
+                    ft.Container(
+                        content=ft.Text(
+                            str(count),
+                            size=14,
+                            weight=ft.FontWeight.BOLD,
+                            color=ft.Colors.WHITE,
+                        ),
+                        bgcolor="#EE7738",
+                        padding=ft.padding.symmetric(horizontal=10, vertical=4),
+                        border_radius=16,
+                    ),
+                ],
+                alignment=ft.MainAxisAlignment.SPACE_BETWEEN,
+                vertical_alignment=ft.CrossAxisAlignment.CENTER,
+            ),
+            padding=ft.padding.symmetric(horizontal=16, vertical=12),
+            bgcolor=ft.Colors.with_opacity(0.1, "#062C80"),
+            border_radius=8,
+            border=ft.border.all(1, ft.Colors.with_opacity(0.1, ft.Colors.WHITE)),
+            on_click=on_click,
+        )
+    
+    @staticmethod
+    def create_category_card(category_name, count, on_click):
+        return ft.GestureDetector(
+            on_tap=on_click,
+            content=ft.Container(
+                content=ft.Column(
+                    [
+                        ft.Text(
+                            f"{category_name}",
+                            size=12,
+                            weight=ft.FontWeight.W_600,
+                            color=ft.Colors.WHITE,
+                            max_lines=2,
+                            text_align=ft.TextAlign.CENTER,
+                        ),
+                        ft.Container(height=6),
+                        ft.Text(
+                            f"({count})",
+                            size=14,
+                            weight=ft.FontWeight.BOLD,
+                            color=ft.Colors.AMBER_300,
+                        ),
+                    ],
+                    horizontal_alignment=ft.CrossAxisAlignment.CENTER,
+                    spacing=0,
+                    tight=True,
+                ),
+                bgcolor="#4A7BA7",
+                padding=ft.padding.symmetric(horizontal=14, vertical=12),
+                border_radius=8,
+                border=ft.border.all(2, ft.Colors.with_opacity(0.4, ft.Colors.BLUE_300)),
+            )
         )
 
