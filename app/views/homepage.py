@@ -46,7 +46,7 @@ def homepage(page, login_func):
                 ft.Text(
                     "FIXIT",
                     size=65,
-                    font_family="Poppins",
+                    font_family="Poppins-Bold",
                     weight=ft.FontWeight.BOLD,
                     color="#062C80",
                     text_align=ft.TextAlign.CENTER,
