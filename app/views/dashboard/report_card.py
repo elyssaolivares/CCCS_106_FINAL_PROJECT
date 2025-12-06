@@ -65,7 +65,7 @@ class ReportCard:
         )
     
     def _get_status_color(self, status):
-        """Get color based on status"""
+        
         color_map = {
             'Resolved': ft.Colors.GREEN,
             'In Progress': ft.Colors.ORANGE,
@@ -79,10 +79,12 @@ class ReportCard:
         description = self.report.get('issue_description', 'No description')
         report_id = self.report.get('id')
         
+        
         location_field = ft.TextField(
             value=location,
-            label="Location:",
+            label="Location",
             border_color="#003D82",
+            focused_border_color="#003D82",
             border_radius=8,
             bgcolor=ft.Colors.WHITE,
             color=ft.Colors.BLACK,
@@ -94,16 +96,19 @@ class ReportCard:
             multiline=True,
             min_lines=3,
             max_lines=5,
-            label="Issue Description:",
+            label="Issue Description",
             hint_text="Describe the issue here...",
             border_color="#003D82",
+            focused_border_color="#003D82",
             border_radius=8,
             bgcolor=ft.Colors.WHITE,
             color=ft.Colors.BLACK,
             filled=True,
         )
         
-        def save_edit(e):
+        def save_and_close(e):
+            """Save the edited report"""
+            # Validate inputs
             if not issue_field.value or not issue_field.value.strip():
                 self._show_snackbar("Please describe the issue", ft.Colors.RED_400)
                 return
@@ -113,17 +118,31 @@ class ReportCard:
                 return
             
             try:
-                db.update_report(report_id, issue_field.value.strip(), location_field.value.strip())
+                # Update report in database
+                db.update_report(
+                    report_id, 
+                    issue_field.value.strip(), 
+                    location_field.value.strip()
+                )
+                
+                # Close dialog
                 dialog.open = False
                 self.page.update()
+                
+                # Show success message
                 self._show_snackbar("Report updated successfully!", ft.Colors.GREEN_400)
+                
+                # Refresh the reports list
                 self.on_update()
+                    
             except Exception as ex:
                 print(f"Error updating report: {ex}")
                 self._show_snackbar(f"Error updating report: {str(ex)}", ft.Colors.RED_400)
         
+        # Create dialog
         dialog = ft.AlertDialog(
-            title=ft.Text("Edit Status", weight=ft.FontWeight.BOLD, size=18),
+            modal=True,
+            title=ft.Text("Edit Report", weight=ft.FontWeight.BOLD, size=18),
             content=ft.Container(
                 content=ft.Column([
                     location_field, 
@@ -134,74 +153,111 @@ class ReportCard:
                 padding=10
             ),
             actions=[
-                ft.Container(
-                    content=ft.ElevatedButton(
-                        "Submit", 
-                        on_click=save_edit, 
-                        bgcolor=ft.Colors.DEEP_ORANGE_400, 
-                        color=ft.Colors.WHITE,
-                        style=ft.ButtonStyle(
-                            shape=ft.RoundedRectangleBorder(radius=8),
-                        ),
+                ft.TextButton(
+                    "Cancel", 
+                    on_click=lambda e: setattr(dialog, 'open', False) or self.page.update()
+                ),
+                ft.ElevatedButton(
+                    "OK", 
+                    on_click=save_and_close, 
+                    bgcolor=ft.Colors.DEEP_ORANGE_400, 
+                    color=ft.Colors.WHITE,
+                    style=ft.ButtonStyle(
+                        shape=ft.RoundedRectangleBorder(radius=8),
                     ),
-                    expand=True,
-                )
+                ),
             ],
-            actions_alignment=ft.MainAxisAlignment.CENTER,
-            modal=True,
+            actions_alignment=ft.MainAxisAlignment.END,
             bgcolor=ft.Colors.with_opacity(0.95, ft.Colors.WHITE)
         )
-        self.page.dialog = dialog
-        dialog.open = True
-        self.page.update()
+        
+        # Open dialog using page.open()
+        self.page.open(dialog)
     
     def _show_delete_dialog(self, e):
         """Show delete confirmation dialog"""
         report_id = self.report.get('id')
+        location = self.report.get('location', 'Unknown Location')
         
         def confirm_delete(e):
+            """Delete the report"""
             try:
+                
                 db.delete_report(report_id)
+                
+                
                 dialog.open = False
                 self.page.update()
+                
+                
                 self._show_snackbar("Report deleted successfully!", ft.Colors.GREEN_400)
+                
+                
                 self.on_update()
+                    
             except Exception as ex:
                 print(f"Error deleting report: {ex}")
                 self._show_snackbar(f"Error deleting report: {str(ex)}", ft.Colors.RED_400)
         
-        def cancel_delete(e):
-            dialog.open = False
-            self.page.update()
         
         dialog = ft.AlertDialog(
-            title=ft.Text("Delete Report", weight=ft.FontWeight.BOLD, color=ft.Colors.RED_900),
+            modal=True,
+            title=ft.Text("Confirm Delete", weight=ft.FontWeight.BOLD, color=ft.Colors.RED_900),
             content=ft.Column(
                 [
                     ft.Icon(ft.Icons.WARNING_AMBER_ROUNDED, color=ft.Colors.RED_400, size=48),
                     ft.Container(height=10),
-                    ft.Text("Are you sure you want to delete this report?", text_align=ft.TextAlign.CENTER, weight=ft.FontWeight.W_500),
-                    ft.Text("This action cannot be undone.", text_align=ft.TextAlign.CENTER, size=12, color=ft.Colors.GREY_700),
+                    ft.Text(
+                        "Are you sure you want to delete this report?", 
+                        text_align=ft.TextAlign.CENTER, 
+                        weight=ft.FontWeight.W_500
+                    ),
+                    ft.Container(height=5),
+                    ft.Text(
+                        f'"{location}"',
+                        text_align=ft.TextAlign.CENTER,
+                        size=14,
+                        color=ft.Colors.GREY_800,
+                        italic=True
+                    ),
+                    ft.Container(height=5),
+                    ft.Text(
+                        "This action cannot be undone.", 
+                        text_align=ft.TextAlign.CENTER, 
+                        size=12, 
+                        color=ft.Colors.GREY_700
+                    ),
                 ],
                 horizontal_alignment=ft.CrossAxisAlignment.CENTER,
                 tight=True
             ),
             actions=[
-                ft.TextButton("Cancel", on_click=cancel_delete), 
-                ft.ElevatedButton("Delete", on_click=confirm_delete, bgcolor=ft.Colors.RED_400, color=ft.Colors.WHITE)
+                ft.TextButton(
+                    "Cancel", 
+                    on_click=lambda e: setattr(dialog, 'open', False) or self.page.update()
+                ),
+                ft.ElevatedButton(
+                    "Delete", 
+                    on_click=confirm_delete, 
+                    bgcolor=ft.Colors.RED_400, 
+                    color=ft.Colors.WHITE,
+                    style=ft.ButtonStyle(
+                        shape=ft.RoundedRectangleBorder(radius=8),
+                    )
+                )
             ],
             actions_alignment=ft.MainAxisAlignment.END,
-            modal=True
         )
-        self.page.dialog = dialog
-        dialog.open = True
-        self.page.update()
+        
+        
+        self.page.open(dialog)
     
     def _show_snackbar(self, message, bgcolor):
         """Show snackbar notification"""
         snackbar = ft.SnackBar(
             content=ft.Text(message, color=ft.Colors.WHITE),
             bgcolor=bgcolor,
+            duration=3000,
         )
         self.page.overlay.append(snackbar)
         snackbar.open = True
