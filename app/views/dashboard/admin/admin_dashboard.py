@@ -39,6 +39,10 @@ def admin_dashboard(page: ft.Page, user_data=None):
         from .admin_all_reports import admin_all_reports
         admin_all_reports(page, user_data)
     
+    def navigate_to_audit_logs(e):
+        from .audit_logs_viewer import audit_logs_page
+        audit_logs_page(page, user_data)
+    
     main_content = ft.Column(
         [
             ft.Text("Reports Summary", size=16, font_family="Poppins-Bold",
@@ -74,6 +78,14 @@ def admin_dashboard(page: ft.Page, user_data=None):
                         on_click=navigate_to_all_categories,
                         style=ft.ButtonStyle(
                             color="#062C80",
+                            padding=ft.padding.symmetric(horizontal=12, vertical=4),
+                        ),
+                    ),
+                    ft.TextButton(
+                        "Audit Logs",
+                        on_click=navigate_to_audit_logs,
+                        style=ft.ButtonStyle(
+                            color="#F57C00",
                             padding=ft.padding.symmetric(horizontal=12, vertical=4),
                         ),
                     ),
