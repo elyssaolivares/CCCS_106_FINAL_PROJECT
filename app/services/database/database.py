@@ -22,7 +22,7 @@ class Database:
                 issue_description TEXT NOT NULL,
                 location TEXT NOT NULL,
                 category TEXT DEFAULT 'Uncategorized',
-                status TEXT DEFAULT 'Pending'
+                status TEXT DEFAULT 'pending'
             )
         ''')
         
@@ -33,6 +33,11 @@ class Database:
         
         conn.commit()
         conn.close()
+        
+        try:
+            self.migrate_statuses_to_canonical()
+        except Exception:
+            pass
     
     def add_report(self, user_email, user_name, user_type, issue_description, location, category="Uncategorized"):
         
@@ -42,7 +47,7 @@ class Database:
         cursor.execute('''
             INSERT INTO reports (user_email, user_name, user_type, issue_description, location, category, status)
             VALUES (?, ?, ?, ?, ?, ?, ?)
-        ''', (user_email, user_name, user_type, issue_description, location, category, 'Pending'))
+        ''', (user_email, user_name, user_type, issue_description, location, category, 'pending'))
         
         conn.commit()
         report_id = cursor.lastrowid
@@ -64,6 +69,20 @@ class Database:
         reports = cursor.fetchall()
         conn.close()
         
+        def _canon(s):
+            if not s:
+                return 'pending'
+            s = s.strip().lower()
+            if 'pending' in s:
+                return 'pending'
+            if 'on going' in s or 'ongoing' in s or 'in progress' in s:
+                return 'in progress'
+            if 'fixed' in s or 'resolved' in s:
+                return 'resolved'
+            if 'reject' in s or 'rejected' in s:
+                return 'rejected'
+            return s
+
         report_list = []
         for report in reports:
             report_list.append({
@@ -74,9 +93,9 @@ class Database:
                 'issue_description': report[4],
                 'location': report[5],
                 'category': report[6],
-                'status': report[7]
+                'status': _canon(report[7])
             })
-        
+
         return report_list
     
     def get_reports_by_user(self, user_email):
@@ -95,6 +114,20 @@ class Database:
         reports = cursor.fetchall()
         conn.close()
         
+        def _canon(s):
+            if not s:
+                return 'pending'
+            s = s.strip().lower()
+            if 'pending' in s:
+                return 'pending'
+            if 'on going' in s or 'ongoing' in s or 'in progress' in s:
+                return 'in progress'
+            if 'fixed' in s or 'resolved' in s:
+                return 'resolved'
+            if 'reject' in s or 'rejected' in s:
+                return 'rejected'
+            return s
+
         report_list = []
         for report in reports:
             report_list.append({
@@ -105,9 +138,9 @@ class Database:
                 'issue_description': report[4],
                 'location': report[5],
                 'category': report[6],
-                'status': report[7]
+                'status': _canon(report[7])
             })
-        
+
         return report_list
     
     def get_reports_by_category(self, category):
@@ -125,7 +158,21 @@ class Database:
         
         reports = cursor.fetchall()
         conn.close()
-        
+
+        def _canon(s):
+            if not s:
+                return 'pending'
+            s = s.strip().lower()
+            if 'pending' in s:
+                return 'pending'
+            if 'on going' in s or 'ongoing' in s or 'in progress' in s:
+                return 'in progress'
+            if 'fixed' in s or 'resolved' in s:
+                return 'resolved'
+            if 'reject' in s or 'rejected' in s:
+                return 'rejected'
+            return s
+
         report_list = []
         for report in reports:
             report_list.append({
@@ -136,9 +183,9 @@ class Database:
                 'issue_description': report[4],
                 'location': report[5],
                 'category': report[6],
-                'status': report[7]
+                'status': _canon(report[7])
             })
-        
+
         return report_list
 
     def get_report_by_id(self, report_id):
@@ -160,6 +207,20 @@ class Database:
         if not r:
             return None
 
+        def _canon(s):
+            if not s:
+                return 'pending'
+            s = s.strip().lower()
+            if 'pending' in s:
+                return 'pending'
+            if 'on going' in s or 'ongoing' in s or 'in progress' in s:
+                return 'in progress'
+            if 'fixed' in s or 'resolved' in s:
+                return 'resolved'
+            if 'reject' in s or 'rejected' in s:
+                return 'rejected'
+            return s
+
         return {
             'id': r[0],
             'user_email': r[1],
@@ -168,20 +229,59 @@ class Database:
             'issue_description': r[4],
             'location': r[5],
             'category': r[6],
-            'status': r[7]
+            'status': _canon(r[7])
         }
     
     def update_report_status(self, report_id, new_status):
         
         conn = self.get_connection()
         cursor = conn.cursor()
-        
+        ns = (new_status or '').strip().lower()
+        if 'pending' in ns:
+            ns = 'pending'
+        elif 'on going' in ns or 'ongoing' in ns or 'in progress' in ns:
+            ns = 'in progress'
+        elif 'fixed' in ns or 'resolved' in ns:
+            ns = 'resolved'
+        elif 'reject' in ns or 'rejected' in ns:
+            ns = 'rejected'
+
         cursor.execute('''
             UPDATE reports
             SET status = ?
             WHERE id = ?
-        ''', (new_status, report_id))
+        ''', (ns, report_id))
         
+        conn.commit()
+        conn.close()
+    
+    def migrate_statuses_to_canonical(self):
+        """Normalize existing status values in DB to canonical lowercase values."""
+        conn = self.get_connection()
+        cursor = conn.cursor()
+        cursor.execute('SELECT id, status FROM reports')
+        rows = cursor.fetchall()
+
+        def _canon_val(s):
+            if not s:
+                return 'pending'
+            s0 = s.strip().lower()
+            if 'pending' in s0:
+                return 'pending'
+            if 'on going' in s0 or 'ongoing' in s0 or 'in progress' in s0:
+                return 'in progress'
+            if 'fixed' in s0 or 'resolved' in s0:
+                return 'resolved'
+            if 'reject' in s0 or 'rejected' in s0:
+                return 'rejected'
+            return s0
+
+        for r in rows:
+            rid, val = r
+            canon = _canon_val(val)
+            if canon != (val or '').strip().lower():
+                cursor.execute('UPDATE reports SET status = ? WHERE id = ?', (canon, rid))
+
         conn.commit()
         conn.close()
     
