@@ -1,6 +1,7 @@
 import flet as ft
 from app.services.google.google_auth import google_oauth_login
 from app.services.auth.admin_account import validate_admin_credentials
+from app.services.database.database import db
 from app.views.dashboard.admin.admin_dashboard import admin_dashboard
 from app.views.dashboard.user_dashboard import user_dashboard
 
@@ -90,18 +91,24 @@ def loginpage(page: ft.Page):
 
         
         user_firstname = admin_account["name"].split()[0]
-        
-        
+
+        # Use DB name if user already exists to preserve custom name
+        existing = db.get_user_by_email(admin_account["email"])
+        preserved_name = existing.get("name") if existing and existing.get("name") else admin_account["name"]
+
         user_data = {
-            "name": admin_account["name"],
+            "name": preserved_name,
             "email": admin_account["email"],
             "type": "admin"
         }
-        
+
+        # Create or update user in database using preserved name
+        db.create_or_update_user(admin_account["email"], preserved_name, "admin")
+
         page.controls.clear()
         admin_dashboard(page, user_data)
         page.update()
-        
+
         show_snackbar(f"Welcome {user_firstname}!", ft.Colors.GREEN_400)
 
     def cspc_login_clicked(e):
@@ -118,18 +125,24 @@ def loginpage(page: ft.Page):
             
             
             user_firstname = name.split()[0] if name else "User"
-            
-            
+
+            # Preserve DB name if user has an existing custom name
+            existing = db.get_user_by_email(email)
+            preserved_name = existing.get("name") if existing and existing.get("name") else name
+
             user_data = {
-                "name": name,
+                "name": preserved_name,
                 "email": email,
                 "type": role.lower()
             }
-            
+
+            # Create/update user in database using preserved name
+            db.create_or_update_user(email, preserved_name, role.lower())
+
             page.controls.clear()
             user_dashboard(page, user_data)
             page.update()
-            
+
             show_snackbar(f"Welcome {user_firstname}!", ft.Colors.GREEN_400)
             
         except Exception as ex:
