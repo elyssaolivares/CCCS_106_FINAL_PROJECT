@@ -140,6 +140,36 @@ class Database:
             })
         
         return report_list
+
+    def get_report_by_id(self, report_id):
+        """Return a single report dict by id or None if not found."""
+        conn = self.get_connection()
+        cursor = conn.cursor()
+
+        cursor.execute('''
+            SELECT id, user_email, user_name, user_type, issue_description,
+                   location, category, status
+            FROM reports
+            WHERE id = ?
+            LIMIT 1
+        ''', (report_id,))
+
+        r = cursor.fetchone()
+        conn.close()
+
+        if not r:
+            return None
+
+        return {
+            'id': r[0],
+            'user_email': r[1],
+            'user_name': r[2],
+            'user_type': r[3],
+            'issue_description': r[4],
+            'location': r[5],
+            'category': r[6],
+            'status': r[7]
+        }
     
     def update_report_status(self, report_id, new_status):
         
