@@ -3,7 +3,6 @@ import flet as ft
 class DashboardUI:
     @staticmethod
     def create_header(first_name, user_type, is_dark, on_menu_click):
-        """Create dashboard header"""
         return ft.Container(
             content=ft.Row([
                 ft.Text(
@@ -30,101 +29,125 @@ class DashboardUI:
     
     @staticmethod
     def create_statistics_row(total_issues, resolved_issues):
-        """Create statistics cards row"""
-        return ft.Row(
-            [
-                ft.Container(
-                    content=ft.Column([
-                        ft.Text("Total Reports", size=14, font_family="Poppins-Bold", color="#DA5656"),
-                        ft.Text(str(total_issues), size=30, font_family="Poppins-Bold", color="#DA5656")
-                    ]),
-                    padding=30,
-                    bgcolor="#FFEBEB",
-                    border_radius=10,
-                    expand=True,
-                    
-                ),
-                ft.Container(
-                    content=ft.Column([
-                        ft.Text("Resolved", size=14, font_family="Poppins-Bold",color="#70B172"),
-                        ft.Text(str(resolved_issues), size=30, font_family="Poppins-Bold", color="#70B172")
-                    ]),
-                    padding=30,
-                    bgcolor="#E3F4DB",
-                    border_radius=10,
-                    expand=True,
-                    
-                ),
-            ],
-            spacing=10
+        return ft.Container(
+            content=ft.Row(
+                [
+                    ft.Container(
+                        content=ft.Column([
+                            ft.Text("Reports", size=14, font_family="Poppins-Bold", color="#3A3EB8"),
+                            ft.Text(str(total_issues), size=25, font_family="Poppins-Bold", color="#3A3EB8")
+                        ]),
+                        padding=25,
+                        bgcolor="#DFE4FA",
+                        border_radius=10,
+                        expand=True,
+                    ),
+                    ft.Container(
+                        content=ft.Column([
+                            ft.Text("Resolved", size=14, font_family="Poppins-Bold",color="#4CAF50"),
+                            ft.Text(str(resolved_issues), size=25, font_family="Poppins-Bold", color="#4CAF50")
+                        ]),
+                        padding=25,
+                        bgcolor="#E8F5E9",
+                        border_radius=10,
+                        expand=True,
+                    ),
+                ],
+                spacing=10
+            ),
+            bgcolor=ft.Colors.with_opacity(0.02, ft.Colors.BLACK),
+            padding=12,
+            border_radius=10,
+        )
+    
+    @staticmethod
+    def create_content_container(content, is_dark):
+        return ft.Container(
+            content=content,
+            bgcolor=ft.Colors.GREY_900 if is_dark else ft.Colors.GREY_100,
+            expand=True,
+            padding=20,
+        )
+    
+    @staticmethod
+    def create_reports_container(content):
+        """Create reports list container with floating card effect"""
+        return ft.Container(
+            content=content,
+            bgcolor=ft.Colors.with_opacity(0.02, ft.Colors.BLACK),
+            border_radius=10,
+            padding=12,
         )
     
     @staticmethod
     def create_filter_buttons(on_filter_changed):
-        """Create filter buttons for reports"""
         filter_button_refs = {}
+
+        pending_text = ft.Text("Pending", size=10, weight=ft.FontWeight.W_600, color=ft.Colors.WHITE)
+        ongoing_text = ft.Text("Ongoing", size=10, weight=ft.FontWeight.W_600, color=ft.Colors.GREY_500)
+        resolved_text = ft.Text("Resolved", size=10, weight=ft.FontWeight.W_600, color=ft.Colors.GREY_500)
+        rejected_text = ft.Text("Rejected", size=10, weight=ft.FontWeight.W_600, color=ft.Colors.GREY_500)
         
-        pending_btn = ft.ElevatedButton(
-            "Pending",
-            on_click=on_filter_changed("Pending"),
+        pending_btn = ft.Container(
+            content=pending_text,
             bgcolor="#062C80",
-            color=ft.Colors.WHITE,
+            padding=ft.padding.symmetric(horizontal=8, vertical=8),
+            border_radius=8,
+            alignment=ft.alignment.center,
+            on_click=on_filter_changed("Pending"),
             expand=True,
-            style=ft.ButtonStyle(
-                shape=ft.RoundedRectangleBorder(radius=5),
-                text_style=ft.TextStyle(
-                    font_family="Poppins-Bold", size=10
-            ),
-        ),
-            )
-        filter_button_refs["Pending"] = pending_btn
+        )
+        filter_button_refs["Pending"] = {"btn": pending_btn, "text": pending_text}
         
-        ongoing_btn = ft.ElevatedButton(
-            "Ongoing",
+        ongoing_btn = ft.Container(
+            content=ongoing_text,
+            bgcolor=ft.Colors.TRANSPARENT,
+            padding=ft.padding.symmetric(horizontal=8, vertical=8),
+            border_radius=8,
+            alignment=ft.alignment.center,
             on_click=on_filter_changed("In Progress"),
-            bgcolor=ft.Colors.WHITE,
-            color=ft.Colors.BLACK,
             expand=True,
-            style=ft.ButtonStyle(shape=ft.RoundedRectangleBorder(radius=5),
-                                 text_style=ft.TextStyle(
-                    font_family="Poppins-Bold", size=10),
-        ))
-        filter_button_refs["In Progress"] = ongoing_btn
+        )
+        filter_button_refs["In Progress"] = {"btn": ongoing_btn, "text": ongoing_text}
         
-        resolved_btn = ft.ElevatedButton(
-            "Resolved",
+        resolved_btn = ft.Container(
+            content=resolved_text,
+            bgcolor=ft.Colors.TRANSPARENT,
+            padding=ft.padding.symmetric(horizontal=8, vertical=8),
+            border_radius=8,
+            alignment=ft.alignment.center,
             on_click=on_filter_changed("Resolved"),
-            bgcolor=ft.Colors.WHITE,
-            color=ft.Colors.BLACK,
             expand=True,
-            style=ft.ButtonStyle(shape=ft.RoundedRectangleBorder(radius=5),
-                                 text_style=ft.TextStyle(
-                    font_family="Poppins-Bold", size=10)),
         )
-        filter_button_refs["Resolved"] = resolved_btn
+        filter_button_refs["Resolved"] = {"btn": resolved_btn, "text": resolved_text}
         
-        rejected_btn = ft.ElevatedButton(
-            "Rejected",
+        rejected_btn = ft.Container(
+            content=rejected_text,
+            bgcolor=ft.Colors.TRANSPARENT,
+            padding=ft.padding.symmetric(horizontal=8, vertical=8),
+            border_radius=8,
+            alignment=ft.alignment.center,
             on_click=on_filter_changed("Rejected"),
-            bgcolor=ft.Colors.WHITE,
-            color=ft.Colors.BLACK,
             expand=True,
-            style=ft.ButtonStyle(shape=ft.RoundedRectangleBorder(radius=5),
-                                 text_style=ft.TextStyle(
-                    font_family="Poppins-Bold", size=10)),
         )
-        filter_button_refs["Rejected"] = rejected_btn
+        filter_button_refs["Rejected"] = {"btn": rejected_btn, "text": rejected_text}
         
         filter_row = ft.Row(
             [pending_btn, ongoing_btn, resolved_btn, rejected_btn],
             spacing=10,
         )
         
-        return filter_row, filter_button_refs
+        filter_container = ft.Container(
+            content=filter_row,
+            bgcolor=ft.Colors.with_opacity(0.02, ft.Colors.BLACK),
+            padding=8,
+            border_radius=8,
+        )
+        
+        return filter_container, filter_button_refs
     
     @staticmethod
     def create_empty_state(first_name, is_dark, on_report_click):
-        """Create empty state when no reports exist"""
         return ft.Column(
             [
                 ft.Container(height=20),
@@ -183,9 +206,16 @@ class DashboardUI:
                         horizontal_alignment=ft.CrossAxisAlignment.CENTER,
                         spacing=0,
                     ),
+                    bgcolor=ft.Colors.WHITE if not is_dark else ft.Colors.GREY_800,
                     border=ft.border.all(1, ft.Colors.GREY_300 if not is_dark else ft.Colors.GREY_700),
                     border_radius=10,
                     padding=ft.padding.symmetric(horizontal=40, vertical=20),
+                    shadow=ft.BoxShadow(
+                        spread_radius=0,
+                        blur_radius=15,
+                        color=ft.Colors.with_opacity(0.1, ft.Colors.BLACK),
+                        offset=ft.Offset(0, 4),
+                    ),
                 ),
             ],
             spacing=0,
@@ -193,7 +223,6 @@ class DashboardUI:
     
     @staticmethod
     def create_no_reports_message():
-        """Create message when filter returns no results"""
         return ft.Container(
             content=ft.Column(
                 [
@@ -214,7 +243,6 @@ class DashboardUI:
     
     @staticmethod
     def create_fab(on_click):
-        """Create floating action button"""
         return ft.FloatingActionButton(
             icon=ft.Icons.ADD,
             on_click=on_click,
