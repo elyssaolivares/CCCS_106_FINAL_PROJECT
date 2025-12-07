@@ -9,7 +9,15 @@ class ReportCard:
         self.on_update = on_update
     
     def create(self):
-        
+        try:
+            latest = db.get_report_by_id(self.report.get('id'))
+            if latest:
+                # update local copy so subsequent operations use fresh data
+                self.report = latest
+        except Exception:
+            # if DB read fails, fall back to provided report
+            pass
+
         location = self.report.get('location', 'Unknown Location')
         description = self.report.get('issue_description', 'No description')
         status = self.report.get('status', 'Unknown')
@@ -66,7 +74,7 @@ class ReportCard:
     def _get_status_color(self, status):
         
         color_map = {
-            'Fixed': ft.Colors.GREEN,
+            'Resolved': ft.Colors.GREEN,
             'In Progress': ft.Colors.ORANGE,
             'Rejected': ft.Colors.RED_400
         }

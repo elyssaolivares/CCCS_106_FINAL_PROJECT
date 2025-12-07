@@ -8,23 +8,23 @@ class ReportStatistics:
     
     def get_resolved_issues(self):
         
-        return len([r for r in self.reports if r.get('status') == 'Resolved'])
+        return len([r for r in self.reports if self._normalize_status(r.get('status')) == 'Resolved'])
     
     def get_pending_reports(self):
         
-        return [r for r in self.reports if r.get('status') == 'Pending']
+        return [r for r in self.reports if self._normalize_status(r.get('status')) == 'Pending']
     
     def get_ongoing_reports(self):
         
-        return [r for r in self.reports if r.get('status') == 'In Progress']
+        return [r for r in self.reports if self._normalize_status(r.get('status')) == 'In Progress']
     
     def get_resolved_reports(self):
         
-        return [r for r in self.reports if r.get('status') == 'Resolved']
+        return [r for r in self.reports if self._normalize_status(r.get('status')) == 'Resolved']
     
     def get_rejected_reports(self):
         
-        return [r for r in self.reports if r.get('status') == 'Rejected']
+        return [r for r in self.reports if self._normalize_status(r.get('status')) == 'Rejected']
     
     def get_filtered_reports(self, filter_type):
         
@@ -36,3 +36,25 @@ class ReportStatistics:
             "All": lambda: self.reports
         }
         return filter_map.get(filter_type, lambda: self.reports)()
+
+    def _normalize_status(self, status):
+        """Normalize various legacy status strings to canonical set.
+
+        Canonical statuses: 'Pending', 'In Progress', 'Resolved', 'Rejected'
+        """
+        if not status:
+            return 'Pending'
+
+        s = str(status).strip()
+        mapping = {
+            'On Going': 'In Progress',
+            'OnGoing': 'In Progress',
+            'Ongoing': 'In Progress',
+            'In Progress': 'In Progress',
+            'Fixed': 'Resolved',
+            'Resolved': 'Resolved',
+            'Reject': 'Rejected',
+            'Rejected': 'Rejected',
+            'Pending': 'Pending'
+        }
+        return mapping.get(s, s)
