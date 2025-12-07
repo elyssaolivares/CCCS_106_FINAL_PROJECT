@@ -42,19 +42,6 @@ class ReportStatistics:
             return 'Pending'
 
         s = str(status).strip().lower()
-<<<<<<< HEAD
-        mapping = {
-            'on going': 'In Progress',
-            'ongoing': 'In Progress',
-            'in progress': 'In Progress',
-            'fixed': 'Resolved',
-            'resolved': 'Resolved',
-            'reject': 'Rejected',
-            'rejected': 'Rejected',
-            'pending': 'Pending'
-        }
-        return mapping.get(s, s.title())
-=======
 
         if 'pending' in s:
             return 'Pending'
@@ -67,4 +54,3 @@ class ReportStatistics:
 
         # Fallback: return title-cased unknown value
         return str(status).strip().title()
->>>>>>> feature/admin_dashboard_improvements

@@ -117,10 +117,6 @@ class NavigationDrawerComponent:
     def _menu_account_clicked(self, e):
         
         self._close_drawer()
-<<<<<<< HEAD
-        # Ensure add/floating action button is removed when viewing account
-=======
->>>>>>> feature/admin_dashboard_improvements
         self.page.floating_action_button = None
         self.page.update()
         from .account_page import account_page
