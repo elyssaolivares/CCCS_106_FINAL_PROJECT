@@ -87,10 +87,10 @@ def admin_all_reports(page: ft.Page, user_data=None):
         
         status_mapping = {
             "All": len(all_reports),
-            "Pending": counts["pending"],
-            "On Going": counts["on going"],
-            "Fixed": counts["fixed"],
-            "Rejected": counts["rejected"]
+            "Pending": counts.get("pending", 0),
+            "In Progress": counts.get("in progress", 0),
+            "Resolved": counts.get("resolved", 0),
+            "Rejected": counts.get("rejected", 0)
         }
         
         for label, count in status_mapping.items():
@@ -115,7 +115,8 @@ def admin_all_reports(page: ft.Page, user_data=None):
         
         filtered_reports = all_reports
         if current_filters["status"] != "All":
-            filtered_reports = [r for r in all_reports if r.get('status') == current_filters["status"]]
+            target = current_filters["status"].lower()
+            filtered_reports = [r for r in all_reports if (r.get('status') or '').lower() == target]
         
        
         category_counts = DataManager.calculate_category_counts(filtered_reports)

@@ -38,23 +38,19 @@ class ReportStatistics:
         return filter_map.get(filter_type, lambda: self.reports)()
 
     def _normalize_status(self, status):
-        """Normalize various legacy status strings to canonical set.
-
-        Canonical statuses: 'Pending', 'In Progress', 'Resolved', 'Rejected'
-        """
         if not status:
             return 'Pending'
 
-        s = str(status).strip()
-        mapping = {
-            'On Going': 'In Progress',
-            'OnGoing': 'In Progress',
-            'Ongoing': 'In Progress',
-            'In Progress': 'In Progress',
-            'Fixed': 'Resolved',
-            'Resolved': 'Resolved',
-            'Reject': 'Rejected',
-            'Rejected': 'Rejected',
-            'Pending': 'Pending'
-        }
-        return mapping.get(s, s)
+        s = str(status).strip().lower()
+
+        if 'pending' in s:
+            return 'Pending'
+        if 'on going' in s or 'ongoing' in s or 'in progress' in s:
+            return 'In Progress'
+        if 'fixed' in s or 'resolved' in s:
+            return 'Resolved'
+        if 'reject' in s or 'rejected' in s:
+            return 'Rejected'
+
+        # Fallback: return title-cased unknown value
+        return str(status).strip().title()

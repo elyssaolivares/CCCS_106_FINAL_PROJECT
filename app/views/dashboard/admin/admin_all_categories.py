@@ -83,16 +83,17 @@ def admin_all_categories(page: ft.Page, user_data=None):
         stats_row.controls.clear()
         filtered = all_reports
         if current_status_filter["status"] != "All":
-            filtered = [r for r in all_reports if r.get('status') == current_status_filter["status"]]
+            target = (current_status_filter["status"] or '').strip().lower()
+            filtered = [r for r in all_reports if (r.get('status') or '').strip().lower() == target]
         
         from .dashboard_data_manager import DataManager as DM
         counts = DM.calculate_status_counts(filtered)
         
         stats_row.controls.extend([
-            ui_components.create_stat_card("Pending", counts["pending"], "#FFE5D9", "#FF6B35"),
-            ui_components.create_stat_card("On Going", counts["on going"], "#FFF9E6", "#FFC107"),
-            ui_components.create_stat_card("Fixed", counts["fixed"], "#E8F5E9", "#4CAF50"),
-            ui_components.create_stat_card("Rejected", counts["rejected"], "#FFEBEE", "#F44336"),
+            ui_components.create_stat_card("Pending", counts.get("pending", 0), "#FFE5D9", "#FF6B35"),
+            ui_components.create_stat_card("In Progress", counts.get("in progress", 0), "#FFF9E6", "#FFC107"),
+            ui_components.create_stat_card("Resolved", counts.get("resolved", 0), "#E8F5E9", "#4CAF50"),
+            ui_components.create_stat_card("Rejected", counts.get("rejected", 0), "#FFEBEE", "#F44336"),
         ])
     
     def update_status_filters():
@@ -103,10 +104,10 @@ def admin_all_categories(page: ft.Page, user_data=None):
         
         status_mapping = {
             "All": len(all_reports),
-            "Pending": counts["pending"],
-            "On Going": counts["on going"],
-            "Fixed": counts["fixed"],
-            "Rejected": counts["rejected"]
+            "Pending": counts.get("pending", 0),
+            "In Progress": counts.get("in progress", 0),
+            "Resolved": counts.get("resolved", 0),
+            "Rejected": counts.get("rejected", 0)
         }
         
         for label, count in status_mapping.items():
@@ -132,7 +133,8 @@ def admin_all_categories(page: ft.Page, user_data=None):
         
         filtered_reports = all_reports
         if current_status_filter["status"] != "All":
-            filtered_reports = [r for r in all_reports if r.get('status') == current_status_filter["status"]]
+            target = (current_status_filter["status"] or '').strip().lower()
+            filtered_reports = [r for r in all_reports if (r.get('status') or '').strip().lower() == target]
         
         
         category_counts = DataManager.calculate_category_counts(filtered_reports)

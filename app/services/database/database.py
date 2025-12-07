@@ -71,17 +71,17 @@ class Database:
         
         def _canon(s):
             if not s:
-                return 'pending'
+                return 'Pending'
             s = s.strip().lower()
             if 'pending' in s:
-                return 'pending'
+                return 'Pending'
             if 'on going' in s or 'ongoing' in s or 'in progress' in s:
-                return 'in progress'
+                return 'In Progress'
             if 'fixed' in s or 'resolved' in s:
-                return 'resolved'
+                return 'Resolved'
             if 'reject' in s or 'rejected' in s:
-                return 'rejected'
-            return s
+                return 'Rejected'
+            return str(s).title()
 
         report_list = []
         for report in reports:
@@ -116,17 +116,17 @@ class Database:
         
         def _canon(s):
             if not s:
-                return 'pending'
+                return 'Pending'
             s = s.strip().lower()
             if 'pending' in s:
-                return 'pending'
+                return 'Pending'
             if 'on going' in s or 'ongoing' in s or 'in progress' in s:
-                return 'in progress'
+                return 'In Progress'
             if 'fixed' in s or 'resolved' in s:
-                return 'resolved'
+                return 'Resolved'
             if 'reject' in s or 'rejected' in s:
-                return 'rejected'
-            return s
+                return 'Rejected'
+            return str(s).title()
 
         report_list = []
         for report in reports:
@@ -161,17 +161,17 @@ class Database:
 
         def _canon(s):
             if not s:
-                return 'pending'
+                return 'Pending'
             s = s.strip().lower()
             if 'pending' in s:
-                return 'pending'
+                return 'Pending'
             if 'on going' in s or 'ongoing' in s or 'in progress' in s:
-                return 'in progress'
+                return 'In Progress'
             if 'fixed' in s or 'resolved' in s:
-                return 'resolved'
+                return 'Resolved'
             if 'reject' in s or 'rejected' in s:
-                return 'rejected'
-            return s
+                return 'Rejected'
+            return str(s).title()
 
         report_list = []
         for report in reports:
@@ -209,17 +209,17 @@ class Database:
 
         def _canon(s):
             if not s:
-                return 'pending'
+                return 'Pending'
             s = s.strip().lower()
             if 'pending' in s:
-                return 'pending'
+                return 'Pending'
             if 'on going' in s or 'ongoing' in s or 'in progress' in s:
-                return 'in progress'
+                return 'In Progress'
             if 'fixed' in s or 'resolved' in s:
-                return 'resolved'
+                return 'Resolved'
             if 'reject' in s or 'rejected' in s:
-                return 'rejected'
-            return s
+                return 'Rejected'
+            return str(s).title()
 
         return {
             'id': r[0],

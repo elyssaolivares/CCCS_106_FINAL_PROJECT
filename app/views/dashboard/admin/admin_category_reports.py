@@ -78,7 +78,8 @@ def admin_category_reports(page: ft.Page, user_data=None, category=None, status=
     
     
     if status:
-        filtered_reports = [r for r in filtered_reports if r.get('status') == status]
+        sf = (status or '').strip().lower()
+        filtered_reports = [r for r in filtered_reports if (r.get('status') or '').strip().lower() == sf]
     
     
     reports_list = ft.Column(spacing=8, scroll=ft.ScrollMode.AUTO)
@@ -90,12 +91,30 @@ def admin_category_reports(page: ft.Page, user_data=None, category=None, status=
         
         status_filter_buttons.controls.clear()
         
-        # get counts for each status in this category
+        # get counts for each status in this category (normalized to canonical labels)
         category_reports = [r for r in all_reports if r.get('category', 'Uncategorized') == category] if category else all_reports
-        status_counts = {}
+        status_counts = {
+            'Pending': 0,
+            'In Progress': 0,
+            'Resolved': 0,
+            'Rejected': 0
+        }
+
+        def _canon_status(s):
+            s = (s or '').strip().lower()
+            if 'pending' in s:
+                return 'Pending'
+            if 'on going' in s or 'ongoing' in s or 'in progress' in s:
+                return 'In Progress'
+            if 'fixed' in s or 'resolved' in s:
+                return 'Resolved'
+            if 'reject' in s or 'rejected' in s:
+                return 'Rejected'
+            return 'Pending'
+
         for report in category_reports:
-            s = report.get('status', 'Pending')
-            status_counts[s] = status_counts.get(s, 0) + 1
+            canon = _canon_status(report.get('status', 'Pending'))
+            status_counts[canon] = status_counts.get(canon, 0) + 1
         
         
         all_btn = ft.TextButton(
@@ -112,7 +131,7 @@ def admin_category_reports(page: ft.Page, user_data=None, category=None, status=
         status_filter_buttons.controls.append(all_btn)
         
         
-        for s in ["Pending", "On Going", "Fixed", "Rejected"]:
+        for s in ["Pending", "In Progress", "Resolved", "Rejected"]:
             count = status_counts.get(s, 0)
             btn = ft.TextButton(
                 content=ft.Row([

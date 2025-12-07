@@ -35,17 +35,15 @@ class DashboardController:
     def update_stats_and_tabs(self, reports, counts):
         self.state.stats_row.controls.clear()
         self.state.stats_row.controls.extend([
-            self.ui_components.create_stat_card("Pending", counts["pending"], "#FFE5D9", "#FF6B35"),
-            self.ui_components.create_stat_card("On Going", counts["on going"], "#FFF9E6", "#FFC107"),
-            self.ui_components.create_stat_card("Fixed", counts["fixed"], "#E8F5E9", "#4CAF50"),
-            self.ui_components.create_stat_card("Rejected", counts["rejected"], "#FFEBEE", "#F44336"),
+            self.ui_components.create_stat_card("Pending", counts.get("pending", 0), "#FFE5D9", "#FF6B35"),
+            self.ui_components.create_stat_card("In Progress", counts.get("in progress", 0), "#FFF9E6", "#FFC107"),
+            self.ui_components.create_stat_card("Resolved", counts.get("resolved", 0), "#E8F5E9", "#4CAF50"),
+            self.ui_components.create_stat_card("Rejected", counts.get("rejected", 0), "#FFEBEE", "#F44336"),
         ])
     
     def update_category_filter_buttons(self, reports, counts):
-        #build category filter buttons by status
         self.state.category_filter_buttons.controls.clear()
         
-        # Add "All" button
         all_button = ft.TextButton(
             content=self.ui_components.create_tab_button(
                 "All", len(reports), self.state.category_status_filter == "All"
@@ -57,8 +55,8 @@ class DashboardController:
         
         status_mapping = {
             "Pending": "pending",
-            "On Going": "on going",
-            "Fixed": "fixed",
+            "In Progress": "in progress",
+            "Resolved": "resolved",
             "Rejected": "rejected"
         }
         
@@ -79,7 +77,11 @@ class DashboardController:
         
         filtered_reports = reports
         if self.state.category_status_filter != "All":
-            filtered_reports = [r for r in reports if r.get('status') == self.state.category_status_filter]
+            target = (self.state.category_status_filter or "").strip().lower()
+            filtered_reports = [
+                r for r in reports
+                if (r.get('status') or "").strip().lower() == target
+            ]
         
         
         top_categories = self.data_manager.get_top_categories(filtered_reports, limit=5)

@@ -20,19 +20,20 @@ class DataManager:
     def calculate_status_counts(reports):
         counts = {
             "pending": 0,
-            "on going": 0,
-            "fixed": 0,
+            "in progress": 0,
+            "resolved": 0,
             "rejected": 0
         }
         for report in reports:
             normalized = StatusNormalizer.normalize(report.get('status'))
             if "pending" in normalized:
                 counts["pending"] += 1
-            elif "on going" in normalized or "ongoing" in normalized:
-                counts["on going"] += 1
-            elif "fixed" in normalized:
-                counts["fixed"] += 1
-            elif "reject" in normalized:
+                
+            elif "in progress" in normalized or "on going" in normalized or "ongoing" in normalized:
+                counts["in progress"] += 1
+            elif "fixed" in normalized or "resolved" in normalized:
+                counts["resolved"] += 1
+            elif "reject" in normalized or "rejected" in normalized:
                 counts["rejected"] += 1
         return counts
     
