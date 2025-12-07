@@ -1,0 +1,13 @@
+id,actor_email,actor_name,action_type,resource_type,resource_id,details,timestamp,status
+12,a,FIXIT ADMIN,login,,,Admin login successful,2025-12-07 21:58:37,success
+11,a,FIXIT ADMIN,login,,,Admin login successful,2025-12-07 21:52:52,success
+10,arbayta@my.cspc.edu.ph,Arabellabels,login,oauth,,OAuth login as Student,2025-12-07 21:52:38,success
+9,a,FIXIT ADMIN,login,,,Admin login successful,2025-12-07 21:49:20,success
+8,a,FIXIT ADMIN,login,,,Admin login successful,2025-12-07 21:44:12,success
+7,a,FIXIT ADMIN,login,,,Admin login successful,2025-12-07 21:42:07,success
+6,a,FIXIT ADMIN,login,,,Admin login successful,2025-12-07 21:22:02,success
+5,frbiares@my.cspc.edu.ph,Francisca Louise Biares,login,oauth,,OAuth login as Student,2025-12-07 21:21:43,success
+4,a,FIXIT ADMIN,login,,,Admin login successful,2025-12-07 21:15:55,success
+2,a,FIXIT ADMIN,login,,,Admin login successful,2025-12-07 21:13:45,success
+3,a,FIXIT ADMIN,login,,,Admin login successful,2025-12-07 21:13:45,success
+1,arbayta@my.cspc.edu.ph,Arabellabels,login,oauth,,OAuth login as Student,2025-12-07 21:13:05,success
