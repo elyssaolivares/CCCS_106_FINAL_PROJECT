@@ -9,7 +9,7 @@ class ReportCard:
         self.on_update = on_update
     
     def create(self):
-        """Create the report card"""
+        
         location = self.report.get('location', 'Unknown Location')
         description = self.report.get('issue_description', 'No description')
         status = self.report.get('status', 'Unknown')
@@ -22,8 +22,8 @@ class ReportCard:
                     ft.Column(
                         [
                             ft.Row([
-                                ft.Icon(ft.Icons.ERROR_ROUNDED, size=15, color=ft.Colors.WHITE), 
-                                ft.Text(location, size=16, weight=ft.FontWeight.BOLD, color=ft.Colors.WHITE)
+                                ft.Icon(ft.Icons.PLACE, size=20, color=ft.Colors.WHITE), 
+                                ft.Text(location.upper(), size=16, weight=ft.FontWeight.BOLD, color=ft.Colors.WHITE)
                             ], spacing=8),
                             ft.Text(display_description, size=14, color=ft.Colors.WHITE70),
                             ft.Text(
@@ -58,23 +58,21 @@ class ReportCard:
             ),
             padding=15,
             margin=ft.margin.only(bottom=10),
-            bgcolor="#003D82",
+            bgcolor="#062C80",
             border_radius=10,
-            border=ft.border.all(1, ft.Colors.BLUE_200),
-            expand=True,
+            border=ft.border.all(1, ft.Colors.with_opacity(0.1, ft.Colors.WHITE)),
         )
     
     def _get_status_color(self, status):
         
         color_map = {
-            'Resolved': ft.Colors.GREEN,
+            'Fixed': ft.Colors.GREEN,
             'In Progress': ft.Colors.ORANGE,
             'Rejected': ft.Colors.RED_400
         }
         return color_map.get(status, ft.Colors.WHITE70)
     
     def _show_edit_dialog(self, e):
-        """Show edit dialog"""
         location = self.report.get('location', 'Unknown Location')
         description = self.report.get('issue_description', 'No description')
         report_id = self.report.get('id')
@@ -107,8 +105,7 @@ class ReportCard:
         )
         
         def save_and_close(e):
-            """Save the edited report"""
-            # Validate inputs
+            
             if not issue_field.value or not issue_field.value.strip():
                 self._show_snackbar("Please describe the issue", ft.Colors.RED_400)
                 return
@@ -118,28 +115,28 @@ class ReportCard:
                 return
             
             try:
-                # Update report in database
+                
                 db.update_report(
                     report_id, 
                     issue_field.value.strip(), 
                     location_field.value.strip()
                 )
                 
-                # Close dialog
+                
                 dialog.open = False
                 self.page.update()
                 
-                # Show success message
+                
                 self._show_snackbar("Report updated successfully!", ft.Colors.GREEN_400)
                 
-                # Refresh the reports list
+                
                 self.on_update()
                     
             except Exception as ex:
                 print(f"Error updating report: {ex}")
                 self._show_snackbar(f"Error updating report: {str(ex)}", ft.Colors.RED_400)
         
-        # Create dialog
+        
         dialog = ft.AlertDialog(
             modal=True,
             title=ft.Text("Edit Report", weight=ft.FontWeight.BOLD, size=18),
@@ -171,16 +168,14 @@ class ReportCard:
             bgcolor=ft.Colors.with_opacity(0.95, ft.Colors.WHITE)
         )
         
-        # Open dialog using page.open()
+        
         self.page.open(dialog)
     
     def _show_delete_dialog(self, e):
-        """Show delete confirmation dialog"""
         report_id = self.report.get('id')
         location = self.report.get('location', 'Unknown Location')
         
         def confirm_delete(e):
-            """Delete the report"""
             try:
                 
                 db.delete_report(report_id)
