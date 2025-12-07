@@ -5,6 +5,7 @@ from app.views.dashboard.navigation_drawer import NavigationDrawerComponent
 from .dashboard_data_manager import DataManager
 from .admin_dashboard_ui import UIComponents
 from .dashboard_controller import DashboardController, DashboardState
+from app.views.components.session_timeout_ui import create_session_timeout_handler
 
 
 def admin_dashboard(page: ft.Page, user_data=None):
@@ -32,6 +33,18 @@ def admin_dashboard(page: ft.Page, user_data=None):
     data_manager = DataManager()
     ui_components = UIComponents()
     controller = DashboardController(page, user_data, state, data_manager, ui_components)
+    
+    # Setup session timeout handler
+    def on_logout_callback():
+        from app.views.loginpage import loginpage
+        page.controls.clear()
+        loginpage(page)
+    
+    session_timeout_handler = create_session_timeout_handler(
+        page,
+        user_data.get("email"),
+        on_logout_callback
+    )
     
     header = ui_components.create_header(is_dark, nav_drawer.open_drawer)
     

@@ -6,6 +6,7 @@ from .report_statistics import ReportStatistics
 from .navigation_drawer import NavigationDrawerComponent
 from .report_card import ReportCard
 from .dashboard_ui import DashboardUI
+from app.views.components.session_timeout_ui import create_session_timeout_handler
 
 def user_dashboard(page: ft.Page, user_data=None):
 
@@ -59,6 +60,7 @@ def user_dashboard(page: ft.Page, user_data=None):
         user_dashboard(page, user_data)
     
    
+    
     nav_drawer = NavigationDrawerComponent(page, user_data, toggle_dark_theme)
     drawer = nav_drawer.create_drawer(is_dark)
     
@@ -68,6 +70,18 @@ def user_dashboard(page: ft.Page, user_data=None):
     def update_dashboard():
         
         user_dashboard(page, user_data)
+    
+    # Setup session timeout handler
+    def on_logout_callback():
+        from app.views.loginpage import loginpage
+        page.controls.clear()
+        loginpage(page)
+    
+    session_timeout_handler = create_session_timeout_handler(
+        page,
+        user_email,
+        on_logout_callback
+    )
     
     def update_report_list():
         

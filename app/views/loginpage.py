@@ -6,6 +6,7 @@ from app.services.audit.audit_logger import audit_logger
 from app.services.activity.activity_monitor import activity_monitor
 from app.views.dashboard.admin.admin_dashboard import admin_dashboard
 from app.views.dashboard.user_dashboard import user_dashboard
+from app.services.session import get_session_manager
 
 def loginpage(page: ft.Page):
     page.controls.clear()
@@ -113,6 +114,9 @@ def loginpage(page: ft.Page):
         # Create or update user in database using preserved name
         db.create_or_update_user(admin_account["email"], preserved_name, "admin")
 
+        # Create session for admin
+        session_manager = get_session_manager()
+        session_manager.create_session(admin_account["email"], preserved_name, "admin")
         
         # Log successful admin login to both audit and activity
         audit_logger.log_action(admin_account["email"], preserved_name, "login", status="success", details="Admin login successful")
@@ -151,6 +155,9 @@ def loginpage(page: ft.Page):
             # Create/update user in database using preserved name
             db.create_or_update_user(email, preserved_name, role.lower())
 
+            # Create session for OAuth user
+            session_manager = get_session_manager()
+            session_manager.create_session(email, preserved_name, role.lower())
             
             # Log successful OAuth login to both audit and activity
             audit_logger.log_action(email, preserved_name, "login", resource_type="oauth", status="success", details=f"OAuth login as {role}")
