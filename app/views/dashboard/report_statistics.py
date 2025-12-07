@@ -38,14 +38,11 @@ class ReportStatistics:
         return filter_map.get(filter_type, lambda: self.reports)()
 
     def _normalize_status(self, status):
-        """Normalize various legacy status strings to canonical set.
-
-        Canonical statuses: 'Pending', 'In Progress', 'Resolved', 'Rejected'
-        """
         if not status:
             return 'Pending'
 
         s = str(status).strip().lower()
+<<<<<<< HEAD
         mapping = {
             'on going': 'In Progress',
             'ongoing': 'In Progress',
@@ -57,3 +54,17 @@ class ReportStatistics:
             'pending': 'Pending'
         }
         return mapping.get(s, s.title())
+=======
+
+        if 'pending' in s:
+            return 'Pending'
+        if 'on going' in s or 'ongoing' in s or 'in progress' in s:
+            return 'In Progress'
+        if 'fixed' in s or 'resolved' in s:
+            return 'Resolved'
+        if 'reject' in s or 'rejected' in s:
+            return 'Rejected'
+
+        # Fallback: return title-cased unknown value
+        return str(status).strip().title()
+>>>>>>> feature/admin_dashboard_improvements

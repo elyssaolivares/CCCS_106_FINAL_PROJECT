@@ -12,15 +12,13 @@ class ReportCard:
         try:
             latest = db.get_report_by_id(self.report.get('id'))
             if latest:
-                # update local copy so subsequent operations use fresh data
                 self.report = latest
         except Exception:
-            # if DB read fails, fall back to provided report
             pass
 
         location = self.report.get('location', 'Unknown Location')
         description = self.report.get('issue_description', 'No description')
-        status = self.report.get('status', 'Unknown')
+        status = self.report.get('status', 'unknown')
         
         display_description = description[:50] + "..." if len(description) > 50 else description
         
@@ -35,7 +33,7 @@ class ReportCard:
                             ], spacing=8),
                             ft.Text(display_description, size=14, color=ft.Colors.WHITE70),
                             ft.Text(
-                                status, 
+                                status.title(),
                                 size=12,
                                 color=self._get_status_color(status),
                                 italic=True
@@ -72,13 +70,13 @@ class ReportCard:
         )
     
     def _get_status_color(self, status):
-        
         color_map = {
-            'Resolved': ft.Colors.GREEN,
-            'In Progress': ft.Colors.ORANGE,
-            'Rejected': ft.Colors.RED_400
+            'resolved': ft.Colors.GREEN,
+            'in progress': ft.Colors.ORANGE,
+            'rejected': ft.Colors.RED_400,
+            'pending': ft.Colors.AMBER_700,
         }
-        return color_map.get(status, ft.Colors.WHITE70)
+        return color_map.get((status or '').strip().lower(), ft.Colors.WHITE70)
     
     def _show_edit_dialog(self, e):
         location = self.report.get('location', 'Unknown Location')

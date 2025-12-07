@@ -2,6 +2,7 @@ import flet as ft
 from app.services.database.database import db
 from app.views.dashboard.session_manager import SessionManager
 from app.views.dashboard.navigation_drawer import NavigationDrawerComponent
+from .dashboard_data_manager import DataManager, StatusNormalizer
 from .admin_dashboard_ui import UIComponents
 
 
@@ -29,74 +30,42 @@ def admin_category_reports(page: ft.Page, user_data=None, category=None, status=
     
     ui_components = UIComponents()
     
-    # Header
-    header = ft.Container(
-        content=ft.Row(
-            [
-                ft.IconButton(
-                    icon=ft.Icons.ARROW_BACK,
-                    icon_color=ft.Colors.WHITE if is_dark else ft.Colors.BLACK,
-                    on_click=lambda e: _go_back(),
-                ),
-                ft.Text(
-                    f"{category or 'Reports'} - {status or 'All'}" if category else "Reports",
-                    size=18,
-                    weight=ft.FontWeight.BOLD,
-                    color=ft.Colors.WHITE if is_dark else ft.Colors.BLACK,
-                    expand=True,
-                ),
-                ft.IconButton(
-                    icon=ft.Icons.MENU,
-                    icon_color=ft.Colors.WHITE if is_dark else ft.Colors.BLACK,
-                    on_click=nav_drawer.open_drawer,
-                ),
-            ],
-            alignment=ft.MainAxisAlignment.SPACE_BETWEEN,
-        ),
-        padding=ft.padding.symmetric(horizontal=20, vertical=15),
-        bgcolor=ft.Colors.GREY_800 if is_dark else ft.Colors.WHITE,
-        shadow=ft.BoxShadow(
-            spread_radius=1,
-            blur_radius=10,
-            color=ft.Colors.with_opacity(0.2, ft.Colors.BLACK),
-            offset=ft.Offset(0, 2),
-        ),
-    )
-    
     def _go_back():
         from .admin_dashboard import admin_dashboard
         admin_dashboard(page, user_data)
     
+    title = f"{category or 'Reports'} - {status or 'All'}" if category else "Reports"
+    header = ui_components.create_page_header(is_dark, title, _go_back, nav_drawer.open_drawer)
+    
     
     all_reports = db.get_all_reports()
-    
     
     if category:
         filtered_reports = [r for r in all_reports if r.get('category', 'Uncategorized') == category]
     else:
         filtered_reports = all_reports
     
-    
     if status:
-        filtered_reports = [r for r in filtered_reports if r.get('status') == status]
-    
+        sf = (status or '').strip().lower()
+        filtered_reports = [r for r in filtered_reports if (r.get('status') or '').strip().lower() == sf]
     
     reports_list = ft.Column(spacing=8, scroll=ft.ScrollMode.AUTO)
-    
-    
     status_filter_buttons = ft.Row(spacing=8, scroll=ft.ScrollMode.AUTO)
     
     def update_status_filters():
-        
         status_filter_buttons.controls.clear()
         
-        # get counts for each status in this category
         category_reports = [r for r in all_reports if r.get('category', 'Uncategorized') == category] if category else all_reports
-        status_counts = {}
+        status_counts = {
+            'Pending': 0,
+            'In Progress': 0,
+            'Resolved': 0,
+            'Rejected': 0
+        }
+
         for report in category_reports:
-            s = report.get('status', 'Pending')
-            status_counts[s] = status_counts.get(s, 0) + 1
-        
+            canon = StatusNormalizer.canonicalize(report.get('status', 'Pending'))
+            status_counts[canon] = status_counts.get(canon, 0) + 1
         
         all_btn = ft.TextButton(
             content=ft.Row([
@@ -107,12 +76,12 @@ def admin_category_reports(page: ft.Page, user_data=None, category=None, status=
             style=ft.ButtonStyle(
                 bgcolor="#062C80" if status is None else ft.Colors.TRANSPARENT,
                 padding=ft.padding.symmetric(horizontal=12, vertical=8),
+                shape=ft.RoundedRectangleBorder(radius=8),
             )
         )
         status_filter_buttons.controls.append(all_btn)
         
-        
-        for s in ["Pending", "On Going", "Fixed", "Rejected"]:
+        for s in ["Pending", "In Progress", "Resolved", "Rejected"]:
             count = status_counts.get(s, 0)
             btn = ft.TextButton(
                 content=ft.Row([
@@ -123,36 +92,17 @@ def admin_category_reports(page: ft.Page, user_data=None, category=None, status=
                 style=ft.ButtonStyle(
                     bgcolor="#062C80" if status == s else ft.Colors.TRANSPARENT,
                     padding=ft.padding.symmetric(horizontal=12, vertical=8),
+                    shape=ft.RoundedRectangleBorder(radius=8),
                 )
             )
             status_filter_buttons.controls.append(btn)
     
     def handle_status_change(report_id, new_status):
         db.update_report_status(report_id, new_status)
-        
-        
         admin_category_reports(page, user_data, category, status)
     
     if not filtered_reports:
-        reports_list.controls.append(
-            ft.Container(
-                content=ft.Column(
-                    [
-                        ft.Icon(ft.Icons.INBOX_OUTLINED, size=64, color=ft.Colors.GREY_600),
-                        ft.Container(height=10),
-                        ft.Text("No reports found", size=16, weight=ft.FontWeight.BOLD,
-                               color=ft.Colors.GREY_500),
-                        ft.Text(f"There are no reports in this category.",
-                               size=13, color=ft.Colors.GREY_600),
-                    ],
-                    horizontal_alignment=ft.CrossAxisAlignment.CENTER,
-                    spacing=5,
-                    tight=True,
-                ),
-                padding=ft.padding.all(40),
-                alignment=ft.alignment.center,
-            )
-        )
+        reports_list.controls.append(ui_components.create_empty_category_message(category))
     else:
         for report in filtered_reports:
             report_card = ui_components.create_report_card(report, handle_status_change)
@@ -167,13 +117,11 @@ def admin_category_reports(page: ft.Page, user_data=None, category=None, status=
             ft.Text(
                 f"Reports in {category}" if category else "All Reports",
                 size=14,
-                font_family="Poppins-SemiBold",
+                font_family="Poppins-Bold",
                 color=ft.Colors.WHITE if is_dark else ft.Colors.BLACK,
             ),
             # Show status filter buttons only for category view
             *([
-                ft.Container(height=12),
-                ft.Text("Filter by Status:", size=12, color=ft.Colors.GREY_400),
                 ft.Container(height=8),
                 status_filter_buttons,
                 ft.Container(height=12),

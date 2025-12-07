@@ -2,12 +2,11 @@ import flet as ft
 from app.services.database.database import db
 from app.views.dashboard.session_manager import SessionManager
 from app.views.dashboard.navigation_drawer import NavigationDrawerComponent
-from .dashboard_data_manager import DataManager
+from .dashboard_data_manager import DataManager, StatusNormalizer
 from .admin_dashboard_ui import UIComponents
 
 
 def admin_all_reports(page: ft.Page, user_data=None):
-    
     page.controls.clear()
     page.floating_action_button = None
     
@@ -32,65 +31,26 @@ def admin_all_reports(page: ft.Page, user_data=None):
     data_manager = DataManager()
     ui_components = UIComponents()
     
-    # Header
-    header = ft.Container(
-        content=ft.Row(
-            [
-                ft.IconButton(
-                    icon=ft.Icons.ARROW_BACK,
-                    icon_color=ft.Colors.WHITE if is_dark else ft.Colors.BLACK,
-                    on_click=lambda e: _go_back(),
-                ),
-                ft.Text(
-                    "All Reports",
-                    size=18,
-                    weight=ft.FontWeight.BOLD,
-                    color=ft.Colors.WHITE if is_dark else ft.Colors.BLACK,
-                    expand=True,
-                ),
-                ft.IconButton(
-                    icon=ft.Icons.MENU,
-                    icon_color=ft.Colors.WHITE if is_dark else ft.Colors.BLACK,
-                    on_click=nav_drawer.open_drawer,
-                ),
-            ],
-            alignment=ft.MainAxisAlignment.SPACE_BETWEEN,
-        ),
-        padding=ft.padding.symmetric(horizontal=20, vertical=15),
-        bgcolor=ft.Colors.GREY_800 if is_dark else ft.Colors.WHITE,
-        shadow=ft.BoxShadow(
-            spread_radius=1,
-            blur_radius=10,
-            color=ft.Colors.with_opacity(0.2, ft.Colors.BLACK),
-            offset=ft.Offset(0, 2),
-        ),
-    )
-    
     def _go_back():
         from .admin_dashboard import admin_dashboard
         admin_dashboard(page, user_data)
     
+    header = ui_components.create_page_header(is_dark, "All Reports", _go_back, nav_drawer.open_drawer)
     
     all_reports = db.get_all_reports()
-    
-    
     status_filter_buttons = ft.Row(spacing=10, scroll=ft.ScrollMode.AUTO, tight=True)
-    
-    
     category_list_view = ft.Column(spacing=6, scroll=ft.ScrollMode.AUTO, expand=True)
     
     def update_status_filters():
-        
         status_filter_buttons.controls.clear()
-        
         counts = DataManager.calculate_status_counts(all_reports)
         
         status_mapping = {
             "All": len(all_reports),
-            "Pending": counts["pending"],
-            "On Going": counts["on going"],
-            "Fixed": counts["fixed"],
-            "Rejected": counts["rejected"]
+            "Pending": counts.get("pending", 0),
+            "In Progress": counts.get("in progress", 0),
+            "Resolved": counts.get("resolved", 0),
+            "Rejected": counts.get("rejected", 0)
         }
         
         for label, count in status_mapping.items():
@@ -103,44 +63,25 @@ def admin_all_reports(page: ft.Page, user_data=None):
             status_filter_buttons.controls.append(btn)
     
     def apply_status_filter(status):
-        
         current_filters["status"] = status
+        update_status_filters()
         update_category_list()
         page.update()
     
     def update_category_list():
-        
         category_list_view.controls.clear()
-        
         
         filtered_reports = all_reports
         if current_filters["status"] != "All":
-            filtered_reports = [r for r in all_reports if r.get('status') == current_filters["status"]]
+            target = current_filters["status"].lower()
+            filtered_reports = [r for r in all_reports if (r.get('status') or '').lower() == target]
         
-       
         category_counts = DataManager.calculate_category_counts(filtered_reports)
         
         if not category_counts:
-            category_list_view.controls.append(
-                ft.Container(
-                    content=ft.Column(
-                        [
-                            ft.Icon(ft.Icons.INBOX_OUTLINED, size=64, color=ft.Colors.GREY_600),
-                            ft.Container(height=10),
-                            ft.Text("No categories found", size=16, weight=ft.FontWeight.BOLD,
-                                   color=ft.Colors.GREY_500),
-                        ],
-                        horizontal_alignment=ft.CrossAxisAlignment.CENTER,
-                        spacing=5,
-                    ),
-                    padding=ft.padding.all(40),
-                    alignment=ft.alignment.center,
-                )
-            )
+            category_list_view.controls.append(ui_components.create_empty_category_message())
         else:
-            
             sorted_categories = sorted(category_counts.items(), key=lambda x: x[1], reverse=True)
-            
             for category_name, count in sorted_categories:
                 item = ui_components.create_category_list_item(
                     category_name,
@@ -150,10 +91,8 @@ def admin_all_reports(page: ft.Page, user_data=None):
                 category_list_view.controls.append(item)
     
     def navigate_to_category(category_name):
-        
         from .admin_category_reports import admin_category_reports
         admin_category_reports(page, user_data, category=category_name, status=current_filters["status"] if current_filters["status"] != "All" else None)
-    
     
     update_status_filters()
     update_category_list()
@@ -161,8 +100,6 @@ def admin_all_reports(page: ft.Page, user_data=None):
     main_content = ft.Column(
         [
             
-            ft.Text("Filter by Status", size=14, font_family="Poppins-SemiBold",
-                   color=ft.Colors.WHITE if is_dark else ft.Colors.BLACK),
             ft.Container(height=10),
             ft.Container(
                 content=status_filter_buttons,
@@ -170,8 +107,6 @@ def admin_all_reports(page: ft.Page, user_data=None):
                 padding=ft.padding.all(8),
                 border_radius=8,
             ),
-            
-            
             ft.Container(height=20),
             ft.Text("Categories", size=14, font_family="Poppins-SemiBold",
                    color=ft.Colors.WHITE if is_dark else ft.Colors.BLACK),

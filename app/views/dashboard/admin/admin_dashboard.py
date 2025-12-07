@@ -51,25 +51,6 @@ def admin_dashboard(page: ft.Page, user_data=None):
                 border_radius=10,
             ),
             
-            ft.Container(height=20),
-            ft.Row(
-                [
-                    ft.Text("AI-Categorized Reports", size=14, font_family="Poppins-SemiBold",
-                           color=ft.Colors.WHITE if is_dark else ft.Colors.BLACK),
-                    ft.TextButton(
-                        "Show All Reports",
-                        on_click=navigate_to_all_categories,
-                        style=ft.ButtonStyle(
-                            color=ft.Colors.BLUE_400,
-                            padding=ft.padding.symmetric(horizontal=12, vertical=4),
-                        ),
-                    ),
-                ],
-                alignment=ft.MainAxisAlignment.SPACE_BETWEEN,
-                wrap=True,
-            ),
-            ft.Container(height=10),
-            ft.Text("Filter by Status:", size=12, color=ft.Colors.GREY_400),
             ft.Container(height=8),
             ft.Container(
                 content=state.category_filter_buttons,
@@ -78,16 +59,31 @@ def admin_dashboard(page: ft.Page, user_data=None):
                 border_radius=8,
             ),
             ft.Container(height=12),
+            
             ft.Container(
                 content=state.category_list_view,
                 expand=True,
                 bgcolor=ft.Colors.with_opacity(0.02, ft.Colors.WHITE) if is_dark else ft.Colors.with_opacity(0.02, ft.Colors.BLACK),
-                padding=ft.padding.all(12),
+                padding=ft.padding.all(15),
                 border_radius=10,
             ),
+            ft.Row(
+                [
+                    ft.TextButton(
+                        "Show All Reports",
+                        on_click=navigate_to_all_categories,
+                        style=ft.ButtonStyle(
+                            color="#062C80",
+                            padding=ft.padding.symmetric(horizontal=12, vertical=4),
+                        ),
+                    ),
+                ],
+                alignment=ft.MainAxisAlignment.SPACE_BETWEEN,
+                wrap=True,
+                spacing=0,
+                expand=True,
+            ),
         ],
-        spacing=0,
-        expand=True,
     )
     
     main_container = ft.Container(

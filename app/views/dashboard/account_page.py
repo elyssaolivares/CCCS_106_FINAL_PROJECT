@@ -10,7 +10,10 @@ def account_page(page: ft.Page, user_data=None):
         user_data = page.session.get("user_data")
     
     full_name = user_data.get("name", "User") if user_data else "User"
-    role = user_data.get("role", "Student").title() if user_data else "Student"
+    raw_role = None
+    if user_data:
+        raw_role = user_data.get("role") or user_data.get("type")
+    role = str(raw_role).title() if raw_role else "Student"
     email = user_data.get("email", "user@example.com") if user_data else "user@example.com"
     picture = user_data.get("picture") if user_data else None
     
@@ -52,7 +55,6 @@ def account_page(page: ft.Page, user_data=None):
         ),
     )
     
-    # Profile picture or default icon
     profile_image = ft.Container(
         content=ft.Image(
             src=picture,
