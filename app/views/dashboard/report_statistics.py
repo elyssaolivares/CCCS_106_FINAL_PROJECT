@@ -45,16 +45,15 @@ class ReportStatistics:
         if not status:
             return 'Pending'
 
-        s = str(status).strip()
+        s = str(status).strip().lower()
         mapping = {
-            'On Going': 'In Progress',
-            'OnGoing': 'In Progress',
-            'Ongoing': 'In Progress',
-            'In Progress': 'In Progress',
-            'Fixed': 'Resolved',
-            'Resolved': 'Resolved',
-            'Reject': 'Rejected',
-            'Rejected': 'Rejected',
-            'Pending': 'Pending'
+            'on going': 'In Progress',
+            'ongoing': 'In Progress',
+            'in progress': 'In Progress',
+            'fixed': 'Resolved',
+            'resolved': 'Resolved',
+            'reject': 'Rejected',
+            'rejected': 'Rejected',
+            'pending': 'Pending'
         }
-        return mapping.get(s, s)
+        return mapping.get(s, s.title())
