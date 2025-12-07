@@ -1,6 +1,7 @@
 import flet as ft
 from app.views.homepage import homepage
 from app.views.loginpage import loginpage
+from app.services.session import get_session_manager
 
 def main(page: ft.Page):    
     page.title = "FIXIT"
@@ -23,6 +24,10 @@ def main(page: ft.Page):
     page.theme = ft.Theme(
         font_family="Poppins",
     )
+
+    # Start session monitoring
+    session_manager = get_session_manager()
+    session_manager.start_monitoring()
 
     def go_to_login(e):
         page.clean()
