@@ -3,6 +3,7 @@ from app.services.google.google_auth import google_oauth_login
 from app.services.auth.admin_account import validate_admin_credentials
 from app.services.database.database import db
 from app.services.audit.audit_logger import audit_logger
+from app.services.activity.activity_monitor import activity_monitor
 from app.views.dashboard.admin.admin_dashboard import admin_dashboard
 from app.views.dashboard.user_dashboard import user_dashboard
 
@@ -82,8 +83,9 @@ def loginpage(page: ft.Page):
         # Check if role is Student or Faculty
         if role.lower() in ["student", "faculty"]:
             show_snackbar("Account not existed")
-            # Log failed login attempt
+            # Log failed login attempt to both audit and activity
             audit_logger.log_action(email, email, "login_attempt", status="failed", details="Account not existed")
+            activity_monitor.log_login_attempt(email, email, success=False, details="Account not existed")
             return
 
         
@@ -92,6 +94,7 @@ def loginpage(page: ft.Page):
             show_snackbar("Invalid admin credentials")
             # Log failed login
             audit_logger.log_action(email, email, "login_attempt", status="failed", details="Invalid credentials")
+            activity_monitor.log_login_attempt(email, email, success=False, details="Invalid credentials")
             return
 
         
@@ -111,8 +114,9 @@ def loginpage(page: ft.Page):
         db.create_or_update_user(admin_account["email"], preserved_name, "admin")
 
         
-        # Log successful admin login
+        # Log successful admin login to both audit and activity
         audit_logger.log_action(admin_account["email"], preserved_name, "login", status="success", details="Admin login successful")
+        activity_monitor.log_login_attempt(admin_account["email"], preserved_name, success=True, details="Admin login successful")
         page.controls.clear()
         admin_dashboard(page, user_data)
         page.update()
@@ -148,8 +152,9 @@ def loginpage(page: ft.Page):
             db.create_or_update_user(email, preserved_name, role.lower())
 
             
-            # Log successful OAuth login
+            # Log successful OAuth login to both audit and activity
             audit_logger.log_action(email, preserved_name, "login", resource_type="oauth", status="success", details=f"OAuth login as {role}")
+            activity_monitor.log_login_attempt(email, preserved_name, success=True, details=f"OAuth login as {role}")
             page.controls.clear()
             user_dashboard(page, user_data)
             page.update()
@@ -158,8 +163,9 @@ def loginpage(page: ft.Page):
             
         except Exception as ex:
             show_snackbar(str(ex))
-            # Log failed OAuth attempt
+            # Log failed OAuth attempt to both audit and activity
             audit_logger.log_action("unknown", "unknown", "login_attempt", resource_type="oauth", status="failed", details=str(ex))
+            activity_monitor.log_login_attempt("unknown", "unknown", success=False, details=f"OAuth failed: {str(ex)}")
 
     login_button = ft.ElevatedButton(
         text="Login",
