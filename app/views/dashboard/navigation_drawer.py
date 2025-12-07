@@ -117,6 +117,8 @@ class NavigationDrawerComponent:
     def _menu_account_clicked(self, e):
         
         self._close_drawer()
+        self.page.floating_action_button = None
+        self.page.update()
         from .account_page import account_page
         account_page(self.page, self.user_data)
     

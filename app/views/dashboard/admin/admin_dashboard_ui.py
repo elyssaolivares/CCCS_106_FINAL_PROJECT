@@ -183,6 +183,42 @@ class UIComponents:
                 offset=ft.Offset(0, 2)
             ),
         )
+
+    @staticmethod
+    def create_page_header(is_dark, title, on_back, on_menu):
+        """Create header for subpages with back button"""
+        return ft.Container(
+            content=ft.Row(
+                [
+                    ft.IconButton(
+                        icon=ft.Icons.ARROW_BACK,
+                        icon_color=ft.Colors.WHITE if is_dark else ft.Colors.BLACK,
+                        on_click=lambda e: on_back(),
+                    ),
+                    ft.Text(
+                        title,
+                        size=18,
+                        weight=ft.FontWeight.BOLD,
+                        color=ft.Colors.WHITE if is_dark else ft.Colors.BLACK,
+                        expand=True,
+                    ),
+                    ft.IconButton(
+                        icon=ft.Icons.MENU,
+                        icon_color=ft.Colors.WHITE if is_dark else ft.Colors.BLACK,
+                        on_click=on_menu,
+                    ),
+                ],
+                alignment=ft.MainAxisAlignment.SPACE_BETWEEN,
+            ),
+            padding=ft.padding.symmetric(horizontal=20, vertical=15),
+            bgcolor=ft.Colors.GREY_800 if is_dark else ft.Colors.WHITE,
+            shadow=ft.BoxShadow(
+                spread_radius=1,
+                blur_radius=10,
+                color=ft.Colors.with_opacity(0.2, ft.Colors.BLACK),
+                offset=ft.Offset(0, 2),
+            ),
+        )
     
     @staticmethod
     def create_category_list_item(category_name, count, on_click):
@@ -254,60 +290,20 @@ class UIComponents:
         )
     
     @staticmethod
-    def create_page_header(is_dark, title, on_back, on_menu):
-        """Create header for subpages with back button"""
-        return ft.Container(
-            content=ft.Row(
-                [
-                    ft.IconButton(
-                        icon=ft.Icons.ARROW_BACK,
-                        icon_color=ft.Colors.WHITE if is_dark else ft.Colors.BLACK,
-                        on_click=lambda e: on_back(),
-                    ),
-                    ft.Text(
-                        title,
-                        size=18,
-                        weight=ft.FontWeight.BOLD,
-                        color=ft.Colors.WHITE if is_dark else ft.Colors.BLACK,
-                        expand=True,
-                    ),
-                    ft.IconButton(
-                        icon=ft.Icons.MENU,
-                        icon_color=ft.Colors.WHITE if is_dark else ft.Colors.BLACK,
-                        on_click=lambda e: on_menu(),
-                    ),
-                ],
-                alignment=ft.MainAxisAlignment.SPACE_BETWEEN,
-            ),
-            padding=ft.padding.symmetric(horizontal=20, vertical=15),
-            bgcolor=ft.Colors.GREY_800 if is_dark else ft.Colors.WHITE,
-            shadow=ft.BoxShadow(
-                spread_radius=1,
-                blur_radius=10,
-                color=ft.Colors.with_opacity(0.2, ft.Colors.BLACK),
-                offset=ft.Offset(0, 2),
-            ),
-        )
-    
-    @staticmethod
     def create_empty_category_message(category_name=None):
         """Create empty state for category view"""
-        return ft.Container(
-            content=ft.Column(
-                [
-                    ft.Icon(ft.Icons.INBOX_OUTLINED, size=64, color=ft.Colors.GREY_600),
-                    ft.Container(height=10),
-                    ft.Text("No reports found", size=16, weight=ft.FontWeight.BOLD,
-                           color=ft.Colors.GREY_500),
-                    ft.Text(
-                        f"There are no reports in this category." if category_name else "No categories found",
-                        size=13, color=ft.Colors.GREY_600
-                    ),
-                ],
-                horizontal_alignment=ft.CrossAxisAlignment.CENTER,
-                spacing=5,
-            ),
-            padding=ft.padding.all(40),
-            alignment=ft.alignment.center,
+        return ft.Column(
+            [
+                ft.Icon(ft.Icons.INBOX_OUTLINED, size=64, color=ft.Colors.GREY_600),
+                ft.Container(height=10),
+                ft.Text("No reports found", size=16, weight=ft.FontWeight.BOLD,
+                       color=ft.Colors.GREY_500),
+                ft.Text(
+                    f"There are no reports in this category." if category_name else "No categories found",
+                    size=13, color=ft.Colors.GREY_600
+                ),
+            ],
+            horizontal_alignment=ft.CrossAxisAlignment.CENTER,
+            spacing=5,
         )
 

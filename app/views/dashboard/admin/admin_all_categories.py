@@ -115,62 +115,9 @@ def admin_all_categories(page: ft.Page, user_data=None):
     update_status_filters()
     update_category_list()
     
-    main_content = ft.Column(
-        [
-            ft.Text("Reports Summary", size=16, font_family="Poppins-Bold",
-                   color=ft.Colors.WHITE if is_dark else ft.Colors.BLACK),
-            ft.Container(height=12),
-            ft.Container(
-                content=stats_row,
-                bgcolor=ft.Colors.with_opacity(0.02, ft.Colors.WHITE) if is_dark else ft.Colors.with_opacity(0.02, ft.Colors.BLACK),
-                padding=ft.padding.all(12),
-                border_radius=10,
-            ),
-            ft.Container(height=20),
-            ft.Text("Filter by Status", size=14, font_family="Poppins-SemiBold",
-                   color=ft.Colors.WHITE if is_dark else ft.Colors.BLACK),
-            ft.Container(height=10),
-            ft.Container(
-                content=status_filter_buttons,
-                bgcolor=ft.Colors.with_opacity(0.02, ft.Colors.WHITE) if is_dark else ft.Colors.with_opacity(0.02, ft.Colors.BLACK),
-                padding=ft.padding.all(8),
-                border_radius=8,
-            ),
-            ft.Container(height=20),
-            ft.Text("Categories", size=14, font_family="Poppins-SemiBold",
-                   color=ft.Colors.WHITE if is_dark else ft.Colors.BLACK),
-            ft.Container(height=10),
-            ft.Container(
-                content=category_list_view,
-                expand=True,
-                bgcolor=ft.Colors.with_opacity(0.02, ft.Colors.WHITE) if is_dark else ft.Colors.with_opacity(0.02, ft.Colors.BLACK),
-                padding=ft.padding.all(12),
-                border_radius=10,
-            ),
-        ],
-        spacing=0,
-        expand=True,
-    )
-    
-    main_container = ft.Container(
-        content=main_content,
-        padding=ft.padding.all(20),
-        expand=True,
-    )
-    
-    page_layout = ft.Column(
-        [
-            header,
-            main_container,
-        ],
-        spacing=0,
-        expand=True,
-    )
-    
     page.theme_mode = ft.ThemeMode.DARK if is_dark else ft.ThemeMode.LIGHT
     page.bgcolor = ft.Colors.GREY_900 if is_dark else ft.Colors.GREY_100
     page.end_drawer = drawer
     page.scroll = ft.ScrollMode.AUTO
     
-    page.add(page_layout)
     page.update()

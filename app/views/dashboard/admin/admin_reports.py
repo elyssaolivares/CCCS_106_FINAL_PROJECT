@@ -92,10 +92,13 @@ def admin_reports(page: ft.Page, user_data=None):
     def update_tabs():
         tab_buttons.controls.clear()
         
-        pending_reports = [r for r in all_reports if r['status'] == 'Pending']
-        ongoing_reports = [r for r in all_reports if r['status'] == 'In Progress']
-        fixed_reports = [r for r in all_reports if r['status'] == 'Resolved']
-        rejected_reports = [r for r in all_reports if r['status'] == 'Rejected']
+        def _norm_status(s):
+            return (s or '').strip().lower()
+
+        pending_reports = [r for r in all_reports if _norm_status(r.get('status')) == 'pending']
+        ongoing_reports = [r for r in all_reports if _norm_status(r.get('status')) == 'in progress']
+        fixed_reports = [r for r in all_reports if _norm_status(r.get('status')) == 'resolved']
+        rejected_reports = [r for r in all_reports if _norm_status(r.get('status')) == 'rejected']
         
         pending_btn = ft.TextButton(
             content=create_tab_button("Pending", len(pending_reports), current_tab["status"] == "Pending"),
@@ -125,7 +128,8 @@ def admin_reports(page: ft.Page, user_data=None):
     def update_reports_list(status_filter="Pending"):
         reports_list.controls.clear()
         
-        filtered_reports = [r for r in all_reports if r['status'] == status_filter]
+        sf = (status_filter or '').strip().lower()
+        filtered_reports = [r for r in all_reports if (r.get('status') or '').strip().lower() == sf]
         
         if not filtered_reports:
             # Empty state
