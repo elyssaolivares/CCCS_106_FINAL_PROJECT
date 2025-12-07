@@ -55,21 +55,21 @@ class UIComponents:
         btn_row = ft.Row(
             [
                 ft.ElevatedButton(
-                    "On Going",
-                    on_click=lambda e: on_status_change(report.get('id'), "On Going"),
+                    "In Progress",
+                    on_click=lambda e: on_status_change(report.get('id'), "In Progress"),
                     bgcolor="#FFC107",
                     color=ft.Colors.BLACK,
                     height=32,
                 ),
                 ft.ElevatedButton(
-                    "Fixed",
-                    on_click=lambda e: on_status_change(report.get('id'), "Fixed"),
+                    "Resolved",
+                    on_click=lambda e: on_status_change(report.get('id'), "Resolved"),
                     bgcolor="#4CAF50",
                     color=ft.Colors.WHITE,
                     height=32,
                 ),
                 ft.ElevatedButton(
-                    "Reject",
+                    "Rejected",
                     on_click=lambda e: on_status_change(report.get('id'), "Rejected"),
                     bgcolor="#F44336",
                     color=ft.Colors.WHITE,

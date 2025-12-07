@@ -93,8 +93,8 @@ def admin_reports(page: ft.Page, user_data=None):
         tab_buttons.controls.clear()
         
         pending_reports = [r for r in all_reports if r['status'] == 'Pending']
-        ongoing_reports = [r for r in all_reports if r['status'] == 'On Going']
-        fixed_reports = [r for r in all_reports if r['status'] == 'Fixed']
+        ongoing_reports = [r for r in all_reports if r['status'] == 'In Progress']
+        fixed_reports = [r for r in all_reports if r['status'] == 'Resolved']
         rejected_reports = [r for r in all_reports if r['status'] == 'Rejected']
         
         pending_btn = ft.TextButton(
@@ -102,12 +102,12 @@ def admin_reports(page: ft.Page, user_data=None):
             on_click=lambda e: switch_tab("Pending"),
         )
         ongoing_btn = ft.TextButton(
-            content=create_tab_button("On Going", len(ongoing_reports), current_tab["status"] == "On Going"),
-            on_click=lambda e: switch_tab("On Going"),
+            content=create_tab_button("In Progress", len(ongoing_reports), current_tab["status"] == "In Progress"),
+            on_click=lambda e: switch_tab("In Progress"),
         )
         fixed_btn = ft.TextButton(
-            content=create_tab_button("Fixed", len(fixed_reports), current_tab["status"] == "Fixed"),
-            on_click=lambda e: switch_tab("Fixed"),
+            content=create_tab_button("Resolved", len(fixed_reports), current_tab["status"] == "Resolved"),
+            on_click=lambda e: switch_tab("Resolved"),
         )
         rejected_btn = ft.TextButton(
             content=create_tab_button("Rejected", len(rejected_reports), current_tab["status"] == "Rejected"),
