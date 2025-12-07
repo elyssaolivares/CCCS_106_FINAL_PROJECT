@@ -82,6 +82,7 @@ def admin_all_categories(page: ft.Page, user_data=None):
     def apply_status_filter(status):
         current_status_filter["status"] = status
         update_stats()
+        update_status_filters()
         update_category_list()
         page.update()
     

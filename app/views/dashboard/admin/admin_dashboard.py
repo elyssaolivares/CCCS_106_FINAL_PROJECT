@@ -50,7 +50,7 @@ def admin_dashboard(page: ft.Page, user_data=None):
                 padding=ft.padding.all(12),
                 border_radius=10,
             ),
-            ft.Container(height=10),
+            
             ft.Container(height=8),
             ft.Container(
                 content=state.category_filter_buttons,
@@ -59,11 +59,12 @@ def admin_dashboard(page: ft.Page, user_data=None):
                 border_radius=8,
             ),
             ft.Container(height=12),
+            
             ft.Container(
                 content=state.category_list_view,
                 expand=True,
                 bgcolor=ft.Colors.with_opacity(0.02, ft.Colors.WHITE) if is_dark else ft.Colors.with_opacity(0.02, ft.Colors.BLACK),
-                padding=ft.padding.all(12),
+                padding=ft.padding.all(15),
                 border_radius=10,
             ),
             ft.Row(
@@ -72,7 +73,7 @@ def admin_dashboard(page: ft.Page, user_data=None):
                         "Show All Reports",
                         on_click=navigate_to_all_categories,
                         style=ft.ButtonStyle(
-                            color=ft.Colors.BLUE_400,
+                            color="#062C80",
                             padding=ft.padding.symmetric(horizontal=12, vertical=4),
                         ),
                     ),

@@ -4,8 +4,8 @@ import flet as ft
 class DashboardState:
     def __init__(self):
         self.category_status_filter = "All"  # Track which status filter is selected for categories
-        self.stats_row = ft.Row(spacing=12, wrap=False, scroll=ft.ScrollMode.AUTO)
-        self.category_filter_buttons = ft.Row(spacing=10, scroll=ft.ScrollMode.AUTO, tight=True)
+        self.stats_row = ft.Row(spacing=12, wrap=False, expand=True)
+        self.category_filter_buttons = ft.Row(spacing=10, scroll=ft.ScrollMode.AUTO, expand=True)
         self.category_list_view = ft.Column(spacing=6, scroll=ft.ScrollMode.AUTO, expand=True)
 
 

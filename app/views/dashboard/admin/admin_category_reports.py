@@ -76,6 +76,7 @@ def admin_category_reports(page: ft.Page, user_data=None, category=None, status=
             style=ft.ButtonStyle(
                 bgcolor="#062C80" if status is None else ft.Colors.TRANSPARENT,
                 padding=ft.padding.symmetric(horizontal=12, vertical=8),
+                shape=ft.RoundedRectangleBorder(radius=8),
             )
         )
         status_filter_buttons.controls.append(all_btn)
@@ -91,6 +92,7 @@ def admin_category_reports(page: ft.Page, user_data=None, category=None, status=
                 style=ft.ButtonStyle(
                     bgcolor="#062C80" if status == s else ft.Colors.TRANSPARENT,
                     padding=ft.padding.symmetric(horizontal=12, vertical=8),
+                    shape=ft.RoundedRectangleBorder(radius=8),
                 )
             )
             status_filter_buttons.controls.append(btn)
@@ -115,13 +117,11 @@ def admin_category_reports(page: ft.Page, user_data=None, category=None, status=
             ft.Text(
                 f"Reports in {category}" if category else "All Reports",
                 size=14,
-                font_family="Poppins-SemiBold",
+                font_family="Poppins-Bold",
                 color=ft.Colors.WHITE if is_dark else ft.Colors.BLACK,
             ),
             # Show status filter buttons only for category view
             *([
-                ft.Container(height=12),
-                ft.Text("Filter by Status:", size=12, color=ft.Colors.GREY_400),
                 ft.Container(height=8),
                 status_filter_buttons,
                 ft.Container(height=12),

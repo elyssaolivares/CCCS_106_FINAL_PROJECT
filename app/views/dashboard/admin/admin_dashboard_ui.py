@@ -13,13 +13,13 @@ class UIComponents:
                 ],
                 horizontal_alignment=ft.CrossAxisAlignment.CENTER,
                 spacing=6,
-                tight=True,
             ),
             bgcolor=color_bg,
             padding=ft.padding.all(16),
             border_radius=10,
             expand=1,
             height=100,
+            width=150,
         )
     
     @staticmethod
@@ -53,32 +53,42 @@ class UIComponents:
             desc = desc[:120] + "..."
         
         btn_row = ft.Row(
-            [
-                ft.ElevatedButton(
-                    "In Progress",
-                    on_click=lambda e: on_status_change(report.get('id'), "In Progress"),
-                    bgcolor="#FFC107",
-                    color=ft.Colors.BLACK,
-                    height=32,
+        [
+            ft.ElevatedButton(
+                "In Progress",
+                on_click=lambda e: on_status_change(report.get('id'), "In Progress"),
+                bgcolor="#FFF6D9",
+                color=ft.Colors.BLACK,
+                height=15,
+                style=ft.ButtonStyle(
+                    text_style=ft.TextStyle(size=11)
                 ),
-                ft.ElevatedButton(
-                    "Resolved",
-                    on_click=lambda e: on_status_change(report.get('id'), "Resolved"),
-                    bgcolor="#4CAF50",
-                    color=ft.Colors.WHITE,
-                    height=32,
+            ),
+            ft.ElevatedButton(
+                "Resolved",
+                on_click=lambda e: on_status_change(report.get('id'), "Resolved"),
+                bgcolor="#E0FFE1",
+                color=ft.Colors.WHITE,
+                height=15,
+                style=ft.ButtonStyle(
+                    text_style=ft.TextStyle(size=11)
                 ),
-                ft.ElevatedButton(
-                    "Rejected",
-                    on_click=lambda e: on_status_change(report.get('id'), "Rejected"),
-                    bgcolor="#F44336",
-                    color=ft.Colors.WHITE,
-                    height=32,
+            ),
+            ft.ElevatedButton(
+                "Rejected",
+                on_click=lambda e: on_status_change(report.get('id'), "Rejected"),
+                bgcolor="#F2DAD9",
+                color=ft.Colors.WHITE,
+                height=15,
+                style=ft.ButtonStyle(
+                    text_style=ft.TextStyle(size=11)
                 ),
-            ],
-            spacing=8,
-            wrap=True,
-        )
+            ),
+        ],
+        spacing=8,
+        wrap=True,
+    )
+
         
         return ft.Container(
             content=ft.Column(
@@ -99,16 +109,16 @@ class UIComponents:
                     ft.Divider(height=1, color=ft.Colors.with_opacity(0.2, ft.Colors.WHITE)),
                     ft.Row(
                         [
-                            ft.Icon(ft.Icons.PLACE, size=16, color=ft.Colors.GREY_400),
-                            ft.Text(report.get('location') or '-', size=11, color=ft.Colors.GREY_300, expand=True),
+                            ft.Icon(ft.Icons.PLACE, size=16, color=ft.Colors.WHITE),
+                            ft.Text(report.get('location') or '-', size=11, color=ft.Colors.WHITE, expand=True),
                         ],
                         spacing=6,
                     ),
                     ft.Row(
                         [
-                            ft.Icon(ft.Icons.PERSON, size=16, color=ft.Colors.GREY_400),
+                            ft.Icon(ft.Icons.PERSON, size=16, color=ft.Colors.WHITE),
                             ft.Text(report.get('user_name') or report.get('user_email') or '-', 
-                                   size=11, color=ft.Colors.GREY_300, expand=True),
+                                   size=11, color=ft.Colors.WHITE, expand=True),
                         ],
                         spacing=6,
                     ),
@@ -127,6 +137,7 @@ class UIComponents:
                                 border_radius=4,
                             ),
                         ],
+                        ft.Text("Mark as:", size=11, color=ft.Colors.GREY_300),
                         spacing=8,
                     ),
                     btn_row
@@ -135,7 +146,7 @@ class UIComponents:
                 tight=True,
             ),
             padding=ft.padding.all(16),
-            bgcolor="#1E5BA8",
+            bgcolor="#062C80",
             border_radius=10,
             margin=ft.margin.only(bottom=12),
             border=ft.border.all(1, ft.Colors.with_opacity(0.1, ft.Colors.WHITE)),
@@ -166,7 +177,7 @@ class UIComponents:
         return ft.Container(
             content=ft.Row(
                 [
-                    ft.Text("Admin Dashboard", size=20, weight=ft.FontWeight.BOLD,
+                    ft.Text("Admin Dashboard", size=20, font_family="Poppins-Bold",
                             color=ft.Colors.WHITE if is_dark else ft.Colors.BLACK),
                     ft.IconButton(icon=ft.Icons.MENU,
                                   icon_color=ft.Colors.WHITE if is_dark else ft.Colors.BLACK,
@@ -229,7 +240,7 @@ class UIComponents:
                     ft.Text(
                         category_name,
                         size=14,
-                        font_family="Poppins-SemiBold",
+                        font_family="Poppins-Bold",
                         color=ft.Colors.BLACK,
                         expand=True,
                     ),

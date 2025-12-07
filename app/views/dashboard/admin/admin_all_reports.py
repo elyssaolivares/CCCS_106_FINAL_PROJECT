@@ -64,6 +64,7 @@ def admin_all_reports(page: ft.Page, user_data=None):
     
     def apply_status_filter(status):
         current_filters["status"] = status
+        update_status_filters()
         update_category_list()
         page.update()
     
@@ -98,8 +99,7 @@ def admin_all_reports(page: ft.Page, user_data=None):
     
     main_content = ft.Column(
         [
-            ft.Text("Filter by Status", size=14, font_family="Poppins-SemiBold",
-                   color=ft.Colors.WHITE if is_dark else ft.Colors.BLACK),
+            
             ft.Container(height=10),
             ft.Container(
                 content=status_filter_buttons,
