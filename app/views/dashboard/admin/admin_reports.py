@@ -1,7 +1,7 @@
 import flet as ft
 from app.services.database.database import db
-from .session_manager import SessionManager
-from .navigation_drawer import NavigationDrawerComponent
+from ..session_manager import SessionManager
+from ..navigation_drawer import NavigationDrawerComponent
 
 
 def admin_reports(page: ft.Page, user_data=None):

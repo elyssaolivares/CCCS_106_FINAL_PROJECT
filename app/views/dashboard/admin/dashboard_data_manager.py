@@ -5,6 +5,25 @@ class StatusNormalizer:
     @staticmethod
     def normalize(status_string):
         return (status_string or "").strip().lower().replace("-", " ").replace("_", " ")
+    
+    @staticmethod
+    def canonicalize(status_string):
+        """Convert any status string to canonical Title Case format"""
+        normalized = StatusNormalizer.normalize(status_string)
+        if "pending" in normalized:
+            return "Pending"
+        elif "in progress" in normalized or "on going" in normalized or "ongoing" in normalized:
+            return "In Progress"
+        elif "fixed" in normalized or "resolved" in normalized:
+            return "Resolved"
+        elif "reject" in normalized or "rejected" in normalized:
+            return "Rejected"
+        return "Pending"
+    
+    @staticmethod
+    def match_status(status_a, status_b):
+        """Case-insensitive status comparison"""
+        return StatusNormalizer.normalize(status_a) == StatusNormalizer.normalize(status_b.lower())
 
 
 class DataManager:
