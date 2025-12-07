@@ -89,15 +89,16 @@ def user_dashboard(page: ft.Page, user_data=None):
         def handler(e):
             selected_filter.current = filter_name
             
-            
-            for btn_name, btn in filter_button_refs.items():
+            for btn_name, btn_data in filter_button_refs.items():
                 if btn_name == filter_name:
-                    btn.bgcolor = "#062C80"
-                    btn.color = ft.Colors.WHITE
+                    btn_data["btn"].bgcolor = "#062C80"
+                    btn_data["text"].color = ft.Colors.WHITE
                 else:
-                    btn.bgcolor = ft.Colors.WHITE
-                    btn.color = ft.Colors.BLACK
+                    
+                    btn_data["btn"].bgcolor = ft.Colors.TRANSPARENT
+                    btn_data["text"].color = ft.Colors.GREY_500
             
+            page.update()
             update_report_list()
         return handler
     
