@@ -19,9 +19,16 @@ def user_activity_monitoring_page(page: ft.Page, user_data=None):
     
     is_dark = page.session.get("is_dark_theme") or False
     
-    def go_back_to_dashboard(e):
-        from app.views.dashboard.admin.admin_dashboard import admin_dashboard
-        admin_dashboard(page, user_data)
+    from app.views.dashboard.session_manager import SessionManager
+    from app.views.dashboard.navigation_drawer import NavigationDrawerComponent
+    
+    def toggle_dark_theme(e):
+        SessionManager.set_theme_preference(page, not is_dark)
+        user_activity_monitoring_page(page, user_data)
+    
+    nav_drawer = NavigationDrawerComponent(page, user_data, toggle_dark_theme)
+    drawer = nav_drawer.create_drawer(is_dark)
+    page.end_drawer = drawer
     
     header = ft.Container(
         content=ft.Row(
@@ -33,8 +40,9 @@ def user_activity_monitoring_page(page: ft.Page, user_data=None):
                     color=ft.Colors.WHITE if is_dark else ft.Colors.BLACK,
                 ),
                 ft.IconButton(
-                    icon=ft.Icons.CLOSE,
-                    on_click=go_back_to_dashboard,
+                    icon=ft.Icons.MENU,
+                    icon_color=ft.Colors.BLACK,
+                    on_click=nav_drawer.open_drawer,
                 ),
             ],
             alignment=ft.MainAxisAlignment.SPACE_BETWEEN,
