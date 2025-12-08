@@ -560,16 +560,7 @@ def account_page(page: ft.Page, user_data=None):
             ],
             horizontal_alignment=ft.CrossAxisAlignment.CENTER,
             spacing=0,
-        ),
-        padding=ft.padding.all(30),
-        width=500,
-        bgcolor=ft.Colors.GREY_800 if is_dark else ft.Colors.WHITE,
-        border_radius=15,
-        shadow=ft.BoxShadow(
-            spread_radius=1,
-            blur_radius=10,
-            color=ft.Colors.with_opacity(0.2, ft.Colors.BLACK),
-            offset=ft.Offset(0, 2),
+        
         ),
     )
     

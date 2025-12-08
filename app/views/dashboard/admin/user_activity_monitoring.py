@@ -272,7 +272,7 @@ def user_activity_monitoring_page(page: ft.Page, user_data=None):
         label="Search User Email for Failed Attempts",
         width=300,
         border_color="#062C80",
-        focused_border_color="#093AA5",
+        focused_border_color="#062C805",
     )
     
     def load_failed_attempts(email):
@@ -353,7 +353,7 @@ def user_activity_monitoring_page(page: ft.Page, user_data=None):
     def show_all_users(e):
         main_view_container.content = all_users_view
         load_all_users_stats()
-        btn_all_users.style = ft.ButtonStyle(color="#2196F3")
+        btn_all_users.style = ft.ButtonStyle(color="#062C80")
         btn_user_details.style = ft.ButtonStyle(color=ft.Colors.GREY)
         btn_failed_attempts.style = ft.ButtonStyle(color=ft.Colors.GREY)
         page.update()
@@ -361,7 +361,7 @@ def user_activity_monitoring_page(page: ft.Page, user_data=None):
     def show_user_details(e):
         main_view_container.content = user_detail_view
         btn_all_users.style = ft.ButtonStyle(color=ft.Colors.GREY)
-        btn_user_details.style = ft.ButtonStyle(color="#2196F3")
+        btn_user_details.style = ft.ButtonStyle(color="#062C80")
         btn_failed_attempts.style = ft.ButtonStyle(color=ft.Colors.GREY)
         page.update()
     
@@ -369,13 +369,13 @@ def user_activity_monitoring_page(page: ft.Page, user_data=None):
         main_view_container.content = failed_attempts_view
         btn_all_users.style = ft.ButtonStyle(color=ft.Colors.GREY)
         btn_user_details.style = ft.ButtonStyle(color=ft.Colors.GREY)
-        btn_failed_attempts.style = ft.ButtonStyle(color="#2196F3")
+        btn_failed_attempts.style = ft.ButtonStyle(color="#062C80")
         page.update()
     
     btn_all_users = ft.TextButton(
         "All Users",
         on_click=show_all_users,
-        style=ft.ButtonStyle(color="#2196F3"),
+        style=ft.ButtonStyle(color="#062C80"),
     )
     btn_user_details = ft.TextButton(
         "User Details",
@@ -401,12 +401,14 @@ def user_activity_monitoring_page(page: ft.Page, user_data=None):
     main_content = ft.Column(
         [
             header,
+            ft.Container(height=20),
             nav_bar,
+            ft.Container(height=10),
             ft.Divider(height=1),
             main_view_container,
         ],
         expand=True,
-        spacing=0,
+        spacing=10,
     )
     
     page.add(main_content)

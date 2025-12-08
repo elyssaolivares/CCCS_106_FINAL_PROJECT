@@ -57,31 +57,31 @@ class UIComponents:
             ft.ElevatedButton(
                 "In Progress",
                 on_click=lambda e: on_status_change(report.get('id'), "In Progress"),
-                bgcolor="#FFF6D9",
-                color=ft.Colors.BLACK,
-                height=15,
+                bgcolor="#FBE18B",
+                color="#C5A026",
+                height=20,
                 style=ft.ButtonStyle(
-                    text_style=ft.TextStyle(size=11)
+                    text_style=ft.TextStyle(size=10)
                 ),
             ),
             ft.ElevatedButton(
                 "Resolved",
                 on_click=lambda e: on_status_change(report.get('id'), "Resolved"),
-                bgcolor="#E0FFE1",
-                color=ft.Colors.WHITE,
-                height=15,
+                bgcolor="#87EC8A",
+                color="#427D44",
+                height=20,
                 style=ft.ButtonStyle(
-                    text_style=ft.TextStyle(size=11)
+                    text_style=ft.TextStyle(size=10)
                 ),
             ),
             ft.ElevatedButton(
                 "Rejected",
                 on_click=lambda e: on_status_change(report.get('id'), "Rejected"),
-                bgcolor="#F2DAD9",
-                color=ft.Colors.WHITE,
-                height=15,
+                bgcolor="#FE8F89",
+                color="#87322D",
+                height=20,
                 style=ft.ButtonStyle(
-                    text_style=ft.TextStyle(size=11)
+                    text_style=ft.TextStyle(size=10)
                 ),
             ),
         ],
@@ -101,7 +101,7 @@ class UIComponents:
                                 padding=ft.padding.symmetric(horizontal=8, vertical=4),
                                 border_radius=4,
                             ),
-                            ft.Text(desc, size=13, weight=ft.FontWeight.W_500,
+                            ft.Text(desc, size=13, font_family="Poppins-SemiBold",
                                     color=ft.Colors.WHITE, expand=True),
                         ],
                         spacing=10,
@@ -110,7 +110,7 @@ class UIComponents:
                     ft.Row(
                         [
                             ft.Icon(ft.Icons.PLACE, size=16, color=ft.Colors.WHITE),
-                            ft.Text(report.get('location') or '-', size=11, color=ft.Colors.WHITE, expand=True),
+                            ft.Text(report.get('location') or '-', size=12, color=ft.Colors.WHITE, expand=True),
                         ],
                         spacing=6,
                     ),
@@ -118,7 +118,7 @@ class UIComponents:
                         [
                             ft.Icon(ft.Icons.PERSON, size=16, color=ft.Colors.WHITE),
                             ft.Text(report.get('user_name') or report.get('user_email') or '-', 
-                                   size=11, color=ft.Colors.WHITE, expand=True),
+                                   size=12, color=ft.Colors.WHITE, expand=True),
                         ],
                         spacing=6,
                     ),
@@ -137,7 +137,6 @@ class UIComponents:
                                 border_radius=4,
                             ),
                         ],
-                        ft.Text("Mark as:", size=11, color=ft.Colors.GREY_300),
                         spacing=8,
                     ),
                     btn_row
