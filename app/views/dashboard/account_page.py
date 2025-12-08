@@ -1,5 +1,6 @@
 import flet as ft
 import os
+import base64
 from .session_manager import SessionManager
 from .navigation_drawer import NavigationDrawerComponent
 from app.services.database.database import db
@@ -130,13 +131,61 @@ def account_page(page: ft.Page, user_data=None):
     
     def update_profile_image():
         if current_picture["path"]:
-            profile_image_content.content = ft.Image(
-                src=current_picture["path"],
-                width=120,
-                height=120,
-                fit=ft.ImageFit.COVER,
-                border_radius=60,
-            )
+            # Check if it's a base64 encoded image
+            if current_picture["path"].startswith("data:image"):
+                # It's a base64 encoded image (web compatible)
+                profile_image_content.content = ft.Image(
+                    src_base64=current_picture["path"].split(",")[1] if "," in current_picture["path"] else current_picture["path"],
+                    width=120,
+                    height=120,
+                    fit=ft.ImageFit.COVER,
+                    border_radius=60,
+                )
+            else:
+                # It's a file path
+                # Check if we're in web mode - if so, we can't load desktop file paths
+                try:
+                    # Try to load the file and convert to base64 for web compatibility
+                    if os.path.exists(current_picture["path"]):
+                        import base64
+                        with open(current_picture["path"], 'rb') as f:
+                            image_data = f.read()
+                            base64_image = base64.b64encode(image_data).decode('utf-8')
+                            ext = current_picture["path"].lower().split('.')[-1]
+                            mime_type = f"image/{ext if ext != 'jpg' else 'jpeg'}"
+                            # Update with base64 for future use
+                            current_picture["path"] = f"data:{mime_type};base64,{base64_image}"
+                            profile_image_content.content = ft.Image(
+                                src_base64=base64_image,
+                                width=120,
+                                height=120,
+                                fit=ft.ImageFit.COVER,
+                                border_radius=60,
+                            )
+                    else:
+                        # File doesn't exist (e.g., web mode) - show default icon
+                        profile_image_content.content = ft.Icon(
+                            ft.Icons.ACCOUNT_CIRCLE,
+                            size=120,
+                            color="#062C80",
+                        )
+                except Exception as ex:
+                    print(f"[DEBUG] Could not load image: {ex}")
+                    # Fallback to file path for desktop, or icon if not available
+                    if page.web and not os.path.exists(current_picture["path"]):
+                        profile_image_content.content = ft.Icon(
+                            ft.Icons.ACCOUNT_CIRCLE,
+                            size=120,
+                            color="#062C80",
+                        )
+                    else:
+                        profile_image_content.content = ft.Image(
+                            src=current_picture["path"],
+                            width=120,
+                            height=120,
+                            fit=ft.ImageFit.COVER,
+                            border_radius=60,
+                        )
         else:
             profile_image_content.content = ft.Icon(
                 ft.Icons.ACCOUNT_CIRCLE,
@@ -164,8 +213,40 @@ def account_page(page: ft.Page, user_data=None):
                 page.update()
                 return
             
-            # Update the picture preview immediately
-            current_picture["path"] = file.path
+            # For web compatibility, convert image to base64
+            try:
+                import base64
+                # In web mode, file.path is None, use the bytes from the picked file
+                # In desktop mode, we need to read the file
+                if hasattr(file, 'path') and file.path:
+                    with open(file.path, 'rb') as f:
+                        image_data = f.read()
+                else:
+                    # Web mode: file bytes are available differently
+                    # For now, we'll store the filename and let desktop handle it
+                    image_data = None
+                
+                if image_data:
+                    base64_image = base64.b64encode(image_data).decode('utf-8')
+                # Determine MIME type
+                    ext = file.name.lower().split('.')[-1]
+                    mime_type = f"image/{ext if ext != 'jpg' else 'jpeg'}"
+                    current_picture["path"] = f"data:{mime_type};base64,{base64_image}"
+                else:
+                    error_text.value = "Note: Profile picture upload works best in desktop mode. Web mode has file access limitations."
+                    status_text.value = ""
+                    page.update()
+                    return
+            except Exception as ex:
+                print(f"Error converting image to base64: {ex}")
+                if hasattr(file, 'path') and file.path:
+                    current_picture["path"] = file.path
+                else:
+                    error_text.value = "Unable to process image. Please try in desktop mode."
+                    status_text.value = ""
+                    page.update()
+                    return
+            
             update_profile_image()
             
             error_text.value = ""
