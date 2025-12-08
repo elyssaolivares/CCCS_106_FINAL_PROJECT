@@ -12,3 +12,8 @@ client_secret.json
 # Database files
 *.db
 *.sqlite3
+
+# Coverage files
+.coverage
+htmlcov/
+htmlcov

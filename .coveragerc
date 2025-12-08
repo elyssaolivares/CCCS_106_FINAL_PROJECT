@@ -1,0 +1,46 @@
+[run]
+branch = True
+source = app
+omit =
+    */tests/*
+    */test_*.py
+    */__pycache__/*
+    */migrations/*
+    */__init__.py
+    */venv/*
+    */site-packages/*
+
+[report]
+exclude_lines =
+    pragma: no cover
+    def __repr__
+    raise AssertionError
+    raise NotImplementedError
+    if __name__ == .__main__.:
+    if TYPE_CHECKING:
+    @abstractmethod
+    @abstract
+    pass
+    except ImportError
+    except ModuleNotFoundError
+    if 0:
+    if False:
+    raise NotImplemented
+    @classmethod
+    @staticmethod
+
+precision = 2
+show_missing = True
+skip_covered = False
+sort = Cover
+
+[html]
+directory = htmlcov
+
+[xml]
+output = coverage.xml
+
+[paths]
+source =
+    app
+    */site-packages/app

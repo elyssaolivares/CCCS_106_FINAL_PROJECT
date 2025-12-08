@@ -64,3 +64,10 @@ uvloop==0.22.1
 watchdog==4.0.2
 watchfiles==1.1.1
 websockets==15.0.1
+
+# Testing and Coverage
+pytest==8.0.0
+pytest-cov==6.0.0
+coverage==7.6.1
+pytest-asyncio==0.24.0
+mock==5.1.0
