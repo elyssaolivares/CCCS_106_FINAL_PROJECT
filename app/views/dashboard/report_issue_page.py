@@ -200,6 +200,18 @@ def report_issue_page(page: ft.Page, user_data=None):
                 category=category
             )
             
+            # Log the report creation to audit logs
+            from app.services.audit.audit_logger import audit_logger
+            audit_logger.log_action(
+                actor_email=user_email,
+                actor_name=user_name,
+                action_type='report_create',
+                resource_type='report',
+                resource_id=report_id,
+                details=f'Created report at {location.strip()} in category {category}',
+                status='success'
+            )
+            
             print(f"Report saved with ID: {report_id}, Category: {category}")
             
             issue_description_field.value = ""

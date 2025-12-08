@@ -5,6 +5,25 @@ from datetime import datetime, timedelta
 from app.services.audit.audit_logger import audit_logger
 
 
+def get_action_description(action_type, resource_type=None, details=None):
+    """Convert action type to user-friendly description"""
+    action_descriptions = {
+        'login': 'Logged in',
+        'logout': 'Logged out',
+        'report_create': 'Created a report',
+        'report_update': 'Updated a report',
+        'report_delete': 'Deleted a report',
+        'report_status_change': 'Changed report status',
+        'user_edit': 'Edited user profile',
+        'user_create': 'Created a new user',
+        'user_delete': 'Deleted a user',
+        'password_change': 'Changed password',
+        'admin_view': 'Accessed admin dashboard',
+    }
+    
+    return action_descriptions.get(action_type, action_type)
+
+
 def audit_logs_page(page: ft.Page, user_data=None):
     page.controls.clear()
     
@@ -160,6 +179,7 @@ def audit_logs_page(page: ft.Page, user_data=None):
             )
         else:
             for log in logs:
+                action_desc = get_action_description(log['action_type'], log['resource_type'], log['details'])
                 log_card = ft.Container(
                     content=ft.Column(
                         [
@@ -174,7 +194,7 @@ def audit_logs_page(page: ft.Page, user_data=None):
                                     ),
                                     ft.Column(
                                         [
-                                            ft.Text(f"Action: {log['action_type']}", weight="bold"),
+                                            ft.Text(f"Action: {action_desc}", weight="bold", size=13),
                                             ft.Text(f"Resource: {log['resource_type'] or 'N/A'} (ID: {log['resource_id'] or 'N/A'})", size=12, color=ft.Colors.GREY),
                                         ],
                                         spacing=2,

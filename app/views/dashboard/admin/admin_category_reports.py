@@ -99,6 +99,21 @@ def admin_category_reports(page: ft.Page, user_data=None, category=None, status=
     
     def handle_status_change(report_id, new_status):
         db.update_report_status(report_id, new_status)
+        
+        # Log the status change to audit logs
+        from app.services.audit.audit_logger import audit_logger
+        admin_email = user_data.get('email', 'unknown@example.com') if user_data else 'unknown@example.com'
+        admin_name = user_data.get('name', 'Unknown Admin') if user_data else 'Unknown Admin'
+        audit_logger.log_action(
+            actor_email=admin_email,
+            actor_name=admin_name,
+            action_type='report_status_change',
+            resource_type='report',
+            resource_id=report_id,
+            details=f'Changed report status to {new_status}',
+            status='success'
+        )
+        
         admin_category_reports(page, user_data, category, status)
     
     if not filtered_reports:

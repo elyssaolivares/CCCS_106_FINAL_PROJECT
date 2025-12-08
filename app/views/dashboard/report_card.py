@@ -183,9 +183,22 @@ class ReportCard:
         
         def confirm_delete(e):
             try:
+                from app.services.audit.audit_logger import audit_logger
                 
                 db.delete_report(report_id)
                 
+                # Log the delete action to audit logs
+                user_email = self.user_data.get('email', 'unknown@example.com') if self.user_data else 'unknown@example.com'
+                user_name = self.user_data.get('name', 'Unknown User') if self.user_data else 'Unknown User'
+                audit_logger.log_action(
+                    actor_email=user_email,
+                    actor_name=user_name,
+                    action_type='report_delete',
+                    resource_type='report',
+                    resource_id=report_id,
+                    details=f'Deleted report at {location}',
+                    status='success'
+                )
                 
                 dialog.open = False
                 self.page.update()
