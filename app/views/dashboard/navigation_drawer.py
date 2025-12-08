@@ -21,25 +21,29 @@ class NavigationDrawerComponent:
         if self.is_admin:
             menu_items = [
                 self._create_header(theme_icon),
-                ft.Divider(height=1, color=ft.Colors.WHITE, thickness=1),
+                ft.Divider(height=1, color=ft.Colors.with_opacity(0.2, ft.Colors.WHITE), thickness=1),
                 self._create_menu_item(ft.Icons.DASHBOARD_OUTLINED, "Dashboard", self._menu_admin_home_clicked),
                 self._create_menu_item(ft.Icons.DESCRIPTION_OUTLINED, "Reports", self._menu_admin_reports_clicked),
+                self._create_menu_item(ft.Icons.SECURITY_OUTLINED, "Audit Logs", self._menu_audit_logs_clicked),
+                self._create_menu_item(ft.Icons.VISIBILITY_OUTLINED, "User Activity", self._menu_user_activity_clicked),
+                ft.Divider(height=1, color=ft.Colors.with_opacity(0.1, ft.Colors.WHITE), thickness=1),
                 self._create_menu_item(ft.Icons.ACCOUNT_CIRCLE_OUTLINED, "Account", self._menu_account_clicked),
                 self._create_menu_item(ft.Icons.LOGOUT_OUTLINED, "Logout", self._menu_logout_clicked),
             ]
         else:
             menu_items = [
                 self._create_header(theme_icon),
-                ft.Divider(height=1, color=ft.Colors.WHITE, thickness=1),
+                ft.Divider(height=1, color=ft.Colors.with_opacity(0.2, ft.Colors.WHITE), thickness=1),
                 self._create_menu_item(ft.Icons.HOME_OUTLINED, "Home", self._menu_home_clicked),
                 self._create_menu_item(ft.Icons.DESCRIPTION_OUTLINED, "Report", self._menu_reports_clicked),
+                ft.Divider(height=1, color=ft.Colors.with_opacity(0.1, ft.Colors.WHITE), thickness=1),
                 self._create_menu_item(ft.Icons.ACCOUNT_CIRCLE_OUTLINED, "Account", self._menu_account_clicked),
                 self._create_menu_item(ft.Icons.LOGOUT_OUTLINED, "Logout", self._menu_logout_clicked),
             ]
         
         self.drawer = ft.NavigationDrawer(
             controls=menu_items,
-            bgcolor="#062C80",
+            bgcolor="#0A3A7A",
         )
         return self.drawer
     
@@ -48,13 +52,13 @@ class NavigationDrawerComponent:
         return ft.Container(
             content=ft.Row(
                 [
-                    ft.Text("Menu", size=20, font_family="Poppins-SemiBold", color=ft.Colors.WHITE),
+                    ft.Text("Menu", size=24, font_family="Poppins-Bold", color=ft.Colors.WHITE, weight="bold"),
                     theme_icon,
                 ],
                 alignment=ft.MainAxisAlignment.SPACE_BETWEEN,
             ),
-            padding=20,
-            bgcolor="#062C80",
+            padding=ft.padding.symmetric(horizontal=20, vertical=24),
+            bgcolor="#0A3A7A",
         )
     
     def _create_menu_item(self, icon, text, on_click):
@@ -63,20 +67,20 @@ class NavigationDrawerComponent:
             content=ft.TextButton(
                 content=ft.Row(
                     [
-                        ft.Icon(icon, color=ft.Colors.WHITE, size=20),
+                        ft.Icon(icon, color=ft.Colors.WHITE, size=22),
                         ft.Text(text, color=ft.Colors.WHITE, size=16, font_family="Poppins-SemiBold"),
                     ],
-                    spacing=15,
+                    spacing=16,
                     alignment=ft.MainAxisAlignment.START,
                 ),
                 on_click=on_click,
                 style=ft.ButtonStyle(
-                    padding=15,
-                    shape=ft.RoundedRectangleBorder(radius=0),
-                    overlay_color=ft.Colors.with_opacity(0.2, ft.Colors.WHITE),
+                    padding=ft.padding.symmetric(horizontal=12, vertical=12),
+                    shape=ft.RoundedRectangleBorder(radius=8),
+                    overlay_color=ft.Colors.with_opacity(0.15, ft.Colors.WHITE),
                 ),
             ),
-            padding=ft.padding.symmetric(horizontal=10, vertical=2),
+            padding=ft.padding.symmetric(horizontal=12, vertical=6),
         )
     
     def _close_drawer(self):
@@ -113,6 +117,18 @@ class NavigationDrawerComponent:
         self._close_drawer()
         from app.views.dashboard.admin.admin_all_reports import admin_all_reports
         admin_all_reports(self.page, self.user_data)
+    
+    def _menu_audit_logs_clicked(self, e):
+        
+        self._close_drawer()
+        from app.views.dashboard.admin.audit_logs_viewer import audit_logs_page
+        audit_logs_page(self.page, self.user_data)
+    
+    def _menu_user_activity_clicked(self, e):
+        
+        self._close_drawer()
+        from app.views.dashboard.admin.user_activity_monitoring import user_activity_monitoring_page
+        user_activity_monitoring_page(self.page, self.user_data)
     
     def _menu_account_clicked(self, e):
         
