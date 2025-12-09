@@ -74,7 +74,7 @@ Access the System's Architecture Diagram through : https://mdeditor.net/docs/5d3
 ## Data Model
 The data model is designed to support security and traceability:
 
-<img width="702" height="511" alt="FIXIT_ERD" src="https://github.com/user-attachments/assets/4cc5c413-9769-4f9e-ab40-016ae0c6f5c7" />
+<img width="512" height="348" alt="Screenshot 2025-12-10 at 6 56 50 AM" src="https://github.com/user-attachments/assets/fe694572-d1a0-497a-8107-29903514f28f" />
 
 **Users**: Stores Google Profile data (Email, Name) and Role (Admin/User). Note: Passwords are not stored locally, complying with modern security standards.
 
