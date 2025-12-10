@@ -133,7 +133,16 @@ Acces the Testing Summary through: https://mdeditor.net/docs/594669ea8f4b32c3735
 
 ## Team Roles & Contribution
 
+### Team Overview
+| **Team Member** | **GitHub Username** | **Primary Role** | **Title Stack** |
+|---|---|---|---|
+| **Arabella Bayta** | `arabte-src/arabyte-io` | Full-Stack Developer & Technical Lead | Full-Stack Developer, AI/ML Model Developer, Lead Developer & Architect, UI/UX Designer |
+| **Olivares, Elyssa** | `elyssaolivares` | Project Manager & Database Engineer | Project Manager, Database Engineer, Documentation Lead, UI Designer, API Integration Specialist |
+| **Biares, Francisca** | `Francisca1728` | Quality Assurance & Tester | Application Tester
 
+Access Team Role and Contributions through : https://github.com/elyssaolivares/CCCS_106_FINAL_PROJECT/tree/main/docs/team_roles_and_contribution_matrix
+
+---
 
 ## Risk, Constraint Notes, & Future Enhancements
 
@@ -158,4 +167,19 @@ Acces the Testing Summary through: https://mdeditor.net/docs/594669ea8f4b32c3735
 - **Automated testing & CI/CD**: Add unit/integration tests, pipeline for model validation, and continuous deployment.
 
 
-### Individual Reflection
+## Individual Reflection
+
+#### Arabella Bayta
+Working on FixIt gave me a clearer understanding of how software is actually built from start to finish. I learned how to plan features, design user flows, and identify the technical requirements needed for a functional system. I also realized the importance of keeping code clean and organized, especially when working on key components like authentication, databases, and audit logging.
+
+Throughout the project, I became much more comfortable using Git and GitHub. Managing branches, writing meaningful commit messages, and creating pull requests helped make my workflow more structured. I also learned how to review changes, resolve merge conflicts, and track progress through GitHub issues. These practices kept the project organized and made it easier to understand how everything developed over time.
+
+Overall, this experience strengthened my problem-solving skills and gave me a better understanding of how to manage and maintain a software project in a more thoughtful and organized way.
+
+
+#### Elyssa Olivares
+Developing FIXIT was a journey of persistence and problem-solving. The biggest challenge was mastering the Flet framework, where we often had to build solutions from scratch due to limited documentation compared to established web tools. Integrating Information Assurance standards pushed us out of our comfort zone; implementing secure Audit Logs and Google OAuth wasn't just code, it was a lesson in protecting user trust. Similarly, training the AI model required tireless trial and error to get the categorizations right. I also do have a big difficulty in terms of the repository and how to manage it. Through every bug and refactor, we learned that building software isn't just about writing logic; it's about resilience, adapting to new technologies, and the satisfaction of turning a complex problem into a secure, working reality.
+
+#### Francisca Louise Biares
+
+The FIXIT project provided critical lessons in real-world software engineering, centered first on technical adaptability, as mastering the resource-limited Flet framework demanded constant, independent problem-solving. This was paralleled by a necessity to adopt a security-first mindset, where implementing Google OAuth and comprehensive Audit Logging satisfied strict Information Assurance (IA) mandates and underscored the priority of accountability and user trust. Furthermore, the development exposed practical complexities in both innovative implementation (tuning the AI Classification Model against messy data) and process management, as persistent difficulties with repository synchronization highlighted the direct impact of robust source control practices on project success and efficiency.
