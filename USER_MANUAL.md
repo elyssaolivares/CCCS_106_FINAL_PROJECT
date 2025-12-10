@@ -34,6 +34,8 @@ FIXIT is a centralized platform designed to streamline the reporting and trackin
 <img width="1219" height="492" alt="Screenshot 2025-12-10 at 1 28 59 PM" src="https://github.com/user-attachments/assets/922ecebf-5024-4b80-928e-92c3b83e21eb" />
 
 
+
+
 > **Note:** If you use a non-institutional email, access will be denied.
 
 ### **1.3 The User Dashboard**
