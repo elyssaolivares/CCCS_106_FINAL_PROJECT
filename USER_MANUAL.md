@@ -30,6 +30,10 @@ FIXIT is a centralized platform designed to streamline the reporting and trackin
 4. A browser window will open. Enter your CSPC Google credentials.
 5. Upon successful verification, the application will redirect you to the **User Dashboard**.
 
+
+<img width="1219" height="492" alt="Screenshot 2025-12-10 at 1 28 59 PM" src="https://github.com/user-attachments/assets/922ecebf-5024-4b80-928e-92c3b83e21eb" />
+
+
 > **Note:** If you use a non-institutional email, access will be denied.
 
 ### **1.3 The User Dashboard**
@@ -39,6 +43,9 @@ The Dashboard is your home screen. It displays:
 * **Status Tabs:** Switch between **Pending**, **On-Going**, and **Completed** to filter your reports.
 * **Create Button:** A floating **(+)** button (or "New Report" button) to start a new submission.
 
+
+<img width="458" height="492" alt="Screenshot 2025-12-10 at 1 32 39 PM" src="https://github.com/user-attachments/assets/19cd4067-1919-4773-91b6-f3949604f135" />
+
 ### **1.4 Submitting a Maintenance Report**
 1.  Click the **(+)** button or select **"Report Issue"** from the menu.
 2.  **Location:** Enter the specific room number, building, or landmark (e.g., *"CCS Computer Lab 2"*).
@@ -47,11 +54,16 @@ The Dashboard is your home screen. It displays:
 4.  Click **Submit**.
 5.  A confirmation message will appear, and you will be returned to your Dashboard.
 
+<img width="894" height="492" alt="Screenshot 2025-12-10 at 1 33 54 PM" src="https://github.com/user-attachments/assets/19ec9def-f08f-41be-8644-5f170461dd53" />
+
 ### **1.5 Tracking Your Reports**
 * **Pending:** The report has been sent but not yet acknowledged by Admin.
 * **On-Going:** Admin has assigned a maintenance crew to the issue.
 * **Fixed:** The issue has been resolved.
 * **Rejected:** The report was marked as invalid (check comments for details).
+<img width="1357" height="633" alt="Screenshot 2025-12-10 at 1 35 15 PM" src="https://github.com/user-attachments/assets/64750e4b-5df9-4dba-a1e4-46b08abaf869" />
+
+<img width="1391" height="541" alt="Screenshot 2025-12-10 at 1 35 48 PM" src="https://github.com/user-attachments/assets/67053e79-7772-4f31-b7d9-ecaae316a24d" />
 
 ---
 
