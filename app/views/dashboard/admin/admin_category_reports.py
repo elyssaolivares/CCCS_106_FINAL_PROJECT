@@ -4,168 +4,219 @@ from app.views.dashboard.session_manager import SessionManager
 from app.views.dashboard.navigation_drawer import NavigationDrawerComponent
 from .dashboard_data_manager import DataManager, StatusNormalizer
 from .admin_dashboard_ui import UIComponents
+from .admin_sidebar import create_admin_sidebar
+
+# ── Palette ──
+_BG = "#F5F7FA"
+_NAVY = "#0F2B5B"
+_NAVY_MUTED = "#64748B"
+_ACCENT = "#1565C0"
+_BORDER = "#E0E6ED"
+_BORDER_LIGHT = "#F1F5F9"
+_WHITE = "#FFFFFF"
 
 
 def admin_category_reports(page: ft.Page, user_data=None, category=None, status=None):
-    """Detailed reports page for a specific category, optionally filtered by status"""
+    """Detailed reports page for a specific category, optionally filtered by status."""
     page.controls.clear()
+    page.overlay.clear()
     page.floating_action_button = None
-    
+    page.end_drawer = None
+    page.drawer = None
+    page.scroll = None
+
     if not user_data:
         user_data = page.session.get("user_data")
-    
     if not user_data:
         from app.views.loginpage import loginpage
         loginpage(page)
         return
-    
+
     is_dark = SessionManager.get_theme_preference(page)
-    
+
     def toggle_dark_theme(e):
         SessionManager.set_theme_preference(page, not is_dark)
         admin_category_reports(page, user_data, category, status)
-    
+
     nav_drawer = NavigationDrawerComponent(page, user_data, toggle_dark_theme)
     drawer = nav_drawer.create_drawer(is_dark)
-    
     ui_components = UIComponents()
-    
-    def _go_back():
-        from .admin_dashboard import admin_dashboard
-        admin_dashboard(page, user_data)
-    
-    title = f"{category or 'Reports'} - {status or 'All'}" if category else "Reports"
-    header = ui_components.create_page_header(is_dark, title, _go_back, nav_drawer.open_drawer)
-    
-    
-    all_reports = db.get_all_reports()
-    
+
+    # ── Data ──
+    all_reports = db.get_all_reports() or []
+
     if category:
-        filtered_reports = [r for r in all_reports if r.get('category', 'Uncategorized') == category]
+        filtered_reports = [r for r in all_reports if r.get("category", "Uncategorized") == category]
     else:
         filtered_reports = all_reports
-    
+
     if status:
-        sf = (status or '').strip().lower()
-        filtered_reports = [r for r in filtered_reports if (r.get('status') or '').strip().lower() == sf]
-    
-    reports_list = ft.Column(spacing=8, scroll=ft.ScrollMode.AUTO)
-    status_filter_buttons = ft.Row(spacing=8, scroll=ft.ScrollMode.AUTO)
-    
+        sf = (status or "").strip().lower()
+        filtered_reports = [r for r in filtered_reports if (r.get("status") or "").strip().lower() == sf]
+
+    reports_list = ft.Column(spacing=8, scroll=ft.ScrollMode.AUTO, expand=True)
+    status_filter_buttons = ft.Row(spacing=6, scroll=ft.ScrollMode.AUTO, tight=True)
+
     def update_status_filters():
         status_filter_buttons.controls.clear()
-        
-        category_reports = [r for r in all_reports if r.get('category', 'Uncategorized') == category] if category else all_reports
-        status_counts = {
-            'Pending': 0,
-            'In Progress': 0,
-            'Resolved': 0,
-            'Rejected': 0
-        }
-
+        category_reports = (
+            [r for r in all_reports if r.get("category", "Uncategorized") == category]
+            if category
+            else all_reports
+        )
+        status_counts = {"Pending": 0, "In Progress": 0, "Resolved": 0, "Rejected": 0}
         for report in category_reports:
-            canon = StatusNormalizer.canonicalize(report.get('status', 'Pending'))
+            canon = StatusNormalizer.canonicalize(report.get("status", "Pending"))
             status_counts[canon] = status_counts.get(canon, 0) + 1
-        
-        all_btn = ft.TextButton(
-            content=ft.Row([
-                ft.Text("All", size=12, weight=ft.FontWeight.W_600, color=ft.Colors.WHITE if status is None else ft.Colors.GREY_500),
-                ft.Text(f"({len(category_reports)})", size=11, color=ft.Colors.WHITE if status is None else ft.Colors.GREY_500),
-            ], spacing=4),
+
+        # "All" button
+        all_active = status is None
+        all_btn = ft.Container(
+            content=ui_components.create_tab_button("All", len(category_reports), all_active),
             on_click=lambda e: admin_category_reports(page, user_data, category, None),
-            style=ft.ButtonStyle(
-                bgcolor="#062C80" if status is None else ft.Colors.TRANSPARENT,
-                padding=ft.padding.symmetric(horizontal=12, vertical=8),
-                shape=ft.RoundedRectangleBorder(radius=8),
-            )
         )
         status_filter_buttons.controls.append(all_btn)
-        
-        for s in ["Pending", "In Progress", "Resolved", "Rejected"]:
-            count = status_counts.get(s, 0)
-            btn = ft.TextButton(
-                content=ft.Row([
-                    ft.Text(s, size=12, weight=ft.FontWeight.W_600, color=ft.Colors.WHITE if status == s else ft.Colors.GREY_500),
-                    ft.Text(f"({count})", size=11, color=ft.Colors.WHITE if status == s else ft.Colors.GREY_500),
-                ], spacing=4),
-                on_click=lambda e, st=s: admin_category_reports(page, user_data, category, st),
-                style=ft.ButtonStyle(
-                    bgcolor="#062C80" if status == s else ft.Colors.TRANSPARENT,
-                    padding=ft.padding.symmetric(horizontal=12, vertical=8),
-                    shape=ft.RoundedRectangleBorder(radius=8),
-                )
+
+        for s_label in ["Pending", "In Progress", "Resolved", "Rejected"]:
+            count = status_counts.get(s_label, 0)
+            is_active = status == s_label
+            btn = ft.Container(
+                content=ui_components.create_tab_button(s_label, count, is_active),
+                on_click=lambda e, st=s_label: admin_category_reports(page, user_data, category, st),
             )
             status_filter_buttons.controls.append(btn)
-    
-    def handle_status_change(report_id, new_status):
-        db.update_report_status(report_id, new_status)
-        
-        # Log the status change to audit logs
+
+    def handle_status_change(report_id, new_status, remarks=""):
         from app.services.audit.audit_logger import audit_logger
-        admin_email = user_data.get('email', 'unknown@example.com') if user_data else 'unknown@example.com'
-        admin_name = user_data.get('name', 'Unknown Admin') if user_data else 'Unknown Admin'
+        admin_email = user_data.get("email", "unknown@example.com") if user_data else "unknown@example.com"
+        admin_name = user_data.get("name", "Unknown Admin") if user_data else "Unknown Admin"
+
+        db.update_report_status(report_id, new_status, remarks=remarks, updated_by=admin_email)
+
+        remark_note = f" | Remarks: {remarks}" if remarks else ""
         audit_logger.log_action(
             actor_email=admin_email,
             actor_name=admin_name,
-            action_type='report_status_change',
-            resource_type='report',
+            action_type="report_status_change",
+            resource_type="report",
             resource_id=report_id,
-            details=f'Changed report status to {new_status}',
-            status='success'
+            details=f"Changed report status to {new_status}{remark_note}",
+            status="success",
         )
-        
+
         admin_category_reports(page, user_data, category, status)
-    
+
     if not filtered_reports:
         reports_list.controls.append(ui_components.create_empty_category_message(category))
     else:
         for report in filtered_reports:
-            report_card = ui_components.create_report_card(report, handle_status_change)
+            report_card = ui_components.create_report_card(report, handle_status_change, page=page)
             reports_list.controls.append(report_card)
-    
-    # Build status filters
+
     if category:
         update_status_filters()
-    
+
+    # ── Top bar ──
+    _SIDEBAR_BREAKPOINT = 768
+    is_mobile = not (page.width and page.width >= _SIDEBAR_BREAKPOINT)
+
+    def go_back(e=None):
+        from .admin_all_reports import admin_all_reports
+        admin_all_reports(page, user_data)
+
+    def on_menu_click(e):
+        if drawer:
+            drawer.open = True
+            page.update()
+
+    # ── Admin sidebar ──
+    sidebar, _ = create_admin_sidebar(page, user_data, active_key="reports")
+    sidebar_wrapper = ft.Container(content=sidebar, visible=not is_mobile)
+
+    title = category or "Reports"
+    subtitle = f"Filtered: {status}" if status else "All statuses"
+
+    top_bar = ft.Container(
+        content=ft.Row(
+            [
+                ft.IconButton(ft.Icons.ARROW_BACK_ROUNDED, icon_color=_NAVY, icon_size=20, on_click=go_back),
+                ft.Column(
+                    [
+                        ft.Text(title, size=16, font_family="Poppins-Bold", color=_NAVY,
+                                max_lines=1, overflow=ft.TextOverflow.ELLIPSIS),
+                        ft.Text(subtitle, size=11, font_family="Poppins-Light", color=_NAVY_MUTED),
+                    ],
+                    spacing=2,
+                    expand=True,
+                ),
+                ft.Container(
+                    content=ft.IconButton(ft.Icons.MENU_ROUNDED, icon_color=_NAVY, icon_size=20,
+                                          on_click=on_menu_click),
+                    width=36, height=36, border_radius=10,
+                    bgcolor=_BORDER_LIGHT, alignment=ft.alignment.center,
+                    visible=is_mobile,
+                ),
+            ],
+            spacing=6,
+            vertical_alignment=ft.CrossAxisAlignment.CENTER,
+        ),
+        padding=ft.padding.symmetric(horizontal=14, vertical=12),
+        bgcolor=_WHITE,
+        border=ft.border.only(bottom=ft.BorderSide(1, _BORDER)),
+    )
+
+    # ── Main content ──
+    content_items = []
+    if category:
+        content_items.extend([status_filter_buttons, ft.Container(height=12)])
+    content_items.append(reports_list)
+
     main_content = ft.Column(
-        [
-            ft.Text(
-                f"Reports in {category}" if category else "All Reports",
-                size=14,
-                font_family="Poppins-Bold",
-                color=ft.Colors.WHITE if is_dark else ft.Colors.BLACK,
-            ),
-            # Show status filter buttons only for category view
-            *([
-                ft.Container(height=8),
-                status_filter_buttons,
-                ft.Container(height=12),
-            ] if category else [ft.Container(height=12)]),
-            reports_list,
-        ],
+        content_items,
         spacing=0,
         expand=True,
+        scroll=ft.ScrollMode.AUTO,
     )
-    
-    main_container = ft.Container(
-        content=main_content,
-        padding=ft.padding.all(20),
+
+    content_area = ft.Container(
+        content=ft.Column(
+            [
+                top_bar,
+                ft.Container(
+                    content=main_content,
+                    padding=ft.padding.symmetric(horizontal=16, vertical=10),
+                    expand=True,
+                ),
+            ],
+            spacing=0,
+            expand=True,
+        ),
         expand=True,
+        bgcolor=_BG,
     )
-    
-    page_layout = ft.Column(
-        [
-            header,
-            main_container,
-        ],
-        spacing=0,
-        expand=True,
-    )
-    
-    page.theme_mode = ft.ThemeMode.DARK if is_dark else ft.ThemeMode.LIGHT
-    page.bgcolor = ft.Colors.GREY_900 if is_dark else ft.Colors.GREY_100
+
+    # ── Resize handler ──
+    def on_resize(e):
+        nonlocal is_mobile
+        w = page.width or 0
+        was_mobile = is_mobile
+        is_mobile = w < _SIDEBAR_BREAKPOINT
+        if was_mobile != is_mobile:
+            sidebar_wrapper.visible = not is_mobile
+            page.update()
+
+    page.on_resized = on_resize
+
+    # ── Assemble ──
     page.end_drawer = drawer
-    page.scroll = ft.ScrollMode.AUTO
-    
-    page.add(page_layout)
+    page.theme_mode = ft.ThemeMode.LIGHT
+    page.bgcolor = _BG
+
+    layout = ft.Row(
+        [sidebar_wrapper, content_area],
+        spacing=0, expand=True,
+        vertical_alignment=ft.CrossAxisAlignment.START,
+    )
+
+    page.add(layout)
     page.update()

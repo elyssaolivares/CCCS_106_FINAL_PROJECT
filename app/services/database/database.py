@@ -31,6 +31,14 @@ class Database:
         columns = [column[1] for column in cursor.fetchall()]
         if 'category' not in columns:
             cursor.execute('ALTER TABLE reports ADD COLUMN category TEXT DEFAULT "Uncategorized"')
+        if 'created_at' not in columns:
+            cursor.execute('ALTER TABLE reports ADD COLUMN created_at TIMESTAMP')
+        if 'admin_remarks' not in columns:
+            cursor.execute('ALTER TABLE reports ADD COLUMN admin_remarks TEXT')
+        if 'status_updated_at' not in columns:
+            cursor.execute('ALTER TABLE reports ADD COLUMN status_updated_at TIMESTAMP')
+        if 'status_updated_by' not in columns:
+            cursor.execute('ALTER TABLE reports ADD COLUMN status_updated_by TEXT')
         
         cursor.execute('''
             CREATE TABLE IF NOT EXISTS users (
@@ -63,203 +71,113 @@ class Database:
         conn.close()
         return report_id
     
+    @staticmethod
+    def _canon(s):
+        if not s:
+            return 'Pending'
+        s = s.strip().lower()
+        if 'pending' in s:
+            return 'Pending'
+        if 'on going' in s or 'ongoing' in s or 'in progress' in s:
+            return 'In Progress'
+        if 'fixed' in s or 'resolved' in s:
+            return 'Resolved'
+        if 'reject' in s or 'rejected' in s:
+            return 'Rejected'
+        return str(s).title()
+
+    def _row_to_report(self, row):
+        """Convert a DB row tuple to report dict."""
+        return {
+            'id': row[0],
+            'user_email': row[1],
+            'user_name': row[2],
+            'user_type': row[3],
+            'issue_description': row[4],
+            'location': row[5],
+            'category': row[6],
+            'status': self._canon(row[7]),
+            'admin_remarks': row[8] if len(row) > 8 else None,
+            'status_updated_at': row[9] if len(row) > 9 else None,
+            'status_updated_by': row[10] if len(row) > 10 else None,
+        }
+
+    _REPORT_COLS = '''id, user_email, user_name, user_type, issue_description,
+                      location, category, status, admin_remarks,
+                      status_updated_at, status_updated_by'''
+
     def get_all_reports(self):
         """Get all reports"""
         conn = self.get_connection()
         cursor = conn.cursor()
-        
-        cursor.execute('''
-            SELECT id, user_email, user_name, user_type, issue_description, 
-                   location, category, status
-            FROM reports
-            ORDER BY id DESC
-        ''')
-        
+        cursor.execute(f'SELECT {self._REPORT_COLS} FROM reports ORDER BY id DESC')
         reports = cursor.fetchall()
         conn.close()
-        
-        def _canon(s):
-            if not s:
-                return 'Pending'
-            s = s.strip().lower()
-            if 'pending' in s:
-                return 'Pending'
-            if 'on going' in s or 'ongoing' in s or 'in progress' in s:
-                return 'In Progress'
-            if 'fixed' in s or 'resolved' in s:
-                return 'Resolved'
-            if 'reject' in s or 'rejected' in s:
-                return 'Rejected'
-            return str(s).title()
-
-        report_list = []
-        for report in reports:
-            report_list.append({
-                'id': report[0],
-                'user_email': report[1],
-                'user_name': report[2],
-                'user_type': report[3],
-                'issue_description': report[4],
-                'location': report[5],
-                'category': report[6],
-                'status': _canon(report[7])
-            })
-
-        return report_list
+        return [self._row_to_report(r) for r in reports]
     
     def get_reports_by_user(self, user_email):
         """Get all reports by a specific user"""
         conn = self.get_connection()
         cursor = conn.cursor()
-        
-        cursor.execute('''
-            SELECT id, user_email, user_name, user_type, issue_description, 
-                   location, category, status
-            FROM reports
-            WHERE user_email = ?
-            ORDER BY id DESC
-        ''', (user_email,))
-        
+        cursor.execute(f'SELECT {self._REPORT_COLS} FROM reports WHERE user_email = ? ORDER BY id DESC',
+                       (user_email,))
         reports = cursor.fetchall()
         conn.close()
-        
-        def _canon(s):
-            if not s:
-                return 'Pending'
-            s = s.strip().lower()
-            if 'pending' in s:
-                return 'Pending'
-            if 'on going' in s or 'ongoing' in s or 'in progress' in s:
-                return 'In Progress'
-            if 'fixed' in s or 'resolved' in s:
-                return 'Resolved'
-            if 'reject' in s or 'rejected' in s:
-                return 'Rejected'
-            return str(s).title()
-
-        report_list = []
-        for report in reports:
-            report_list.append({
-                'id': report[0],
-                'user_email': report[1],
-                'user_name': report[2],
-                'user_type': report[3],
-                'issue_description': report[4],
-                'location': report[5],
-                'category': report[6],
-                'status': _canon(report[7])
-            })
-
-        return report_list
+        return [self._row_to_report(r) for r in reports]
     
     def get_reports_by_category(self, category):
         """Get all reports by category"""
         conn = self.get_connection()
         cursor = conn.cursor()
-        
-        cursor.execute('''
-            SELECT id, user_email, user_name, user_type, issue_description, 
-                   location, category, status
-            FROM reports
-            WHERE category = ?
-            ORDER BY id DESC
-        ''', (category,))
-        
+        cursor.execute(f'SELECT {self._REPORT_COLS} FROM reports WHERE category = ? ORDER BY id DESC',
+                       (category,))
         reports = cursor.fetchall()
         conn.close()
-
-        def _canon(s):
-            if not s:
-                return 'Pending'
-            s = s.strip().lower()
-            if 'pending' in s:
-                return 'Pending'
-            if 'on going' in s or 'ongoing' in s or 'in progress' in s:
-                return 'In Progress'
-            if 'fixed' in s or 'resolved' in s:
-                return 'Resolved'
-            if 'reject' in s or 'rejected' in s:
-                return 'Rejected'
-            return str(s).title()
-
-        report_list = []
-        for report in reports:
-            report_list.append({
-                'id': report[0],
-                'user_email': report[1],
-                'user_name': report[2],
-                'user_type': report[3],
-                'issue_description': report[4],
-                'location': report[5],
-                'category': report[6],
-                'status': _canon(report[7])
-            })
-
-        return report_list
+        return [self._row_to_report(r) for r in reports]
 
     def get_report_by_id(self, report_id):
         """Return a single report dict by id or None if not found."""
         conn = self.get_connection()
         cursor = conn.cursor()
-
-        cursor.execute('''
-            SELECT id, user_email, user_name, user_type, issue_description,
-                   location, category, status
-            FROM reports
-            WHERE id = ?
-            LIMIT 1
-        ''', (report_id,))
-
+        cursor.execute(f'SELECT {self._REPORT_COLS} FROM reports WHERE id = ? LIMIT 1',
+                       (report_id,))
         r = cursor.fetchone()
         conn.close()
-
-        if not r:
-            return None
-
-        def _canon(s):
-            if not s:
-                return 'Pending'
-            s = s.strip().lower()
-            if 'pending' in s:
-                return 'Pending'
-            if 'on going' in s or 'ongoing' in s or 'in progress' in s:
-                return 'In Progress'
-            if 'fixed' in s or 'resolved' in s:
-                return 'Resolved'
-            if 'reject' in s or 'rejected' in s:
-                return 'Rejected'
-            return str(s).title()
-
-        return {
-            'id': r[0],
-            'user_email': r[1],
-            'user_name': r[2],
-            'user_type': r[3],
-            'issue_description': r[4],
-            'location': r[5],
-            'category': r[6],
-            'status': _canon(r[7])
-        }
+        return self._row_to_report(r) if r else None
     
-    def update_report_status(self, report_id, new_status):
-        conn = self.get_connection()
-        cursor = conn.cursor()
+    @staticmethod
+    def _normalize_status(new_status):
         ns = (new_status or '').strip().lower()
         if 'pending' in ns:
-            ns = 'pending'
-        elif 'on going' in ns or 'ongoing' in ns or 'in progress' in ns:
-            ns = 'in progress'
-        elif 'fixed' in ns or 'resolved' in ns:
-            ns = 'resolved'
-        elif 'reject' in ns or 'rejected' in ns:
-            ns = 'rejected'
+            return 'pending'
+        if 'on going' in ns or 'ongoing' in ns or 'in progress' in ns:
+            return 'in progress'
+        if 'fixed' in ns or 'resolved' in ns:
+            return 'resolved'
+        if 'reject' in ns or 'rejected' in ns:
+            return 'rejected'
+        return ns
 
-        cursor.execute('''
-            UPDATE reports
-            SET status = ?
-            WHERE id = ?
-        ''', (ns, report_id))
-        
+    def update_report_status(self, report_id, new_status, remarks=None, updated_by=None):
+        conn = self.get_connection()
+        cursor = conn.cursor()
+        ns = self._normalize_status(new_status)
+
+        if remarks is not None:
+            cursor.execute('''
+                UPDATE reports
+                SET status = ?, admin_remarks = ?, status_updated_at = CURRENT_TIMESTAMP,
+                    status_updated_by = ?
+                WHERE id = ?
+            ''', (ns, remarks, updated_by, report_id))
+        else:
+            cursor.execute('''
+                UPDATE reports
+                SET status = ?, status_updated_at = CURRENT_TIMESTAMP,
+                    status_updated_by = ?
+                WHERE id = ?
+            ''', (ns, updated_by, report_id))
+
         conn.commit()
         conn.close()
     
@@ -486,5 +404,87 @@ class Database:
         
         password_hash = hashlib.sha256(password.encode()).hexdigest()
         return password_hash == result[0]
+
+    # ── Analytics queries ──
+
+    def get_reports_per_day(self, days=7):
+        """Get report counts per day for the last N days."""
+        conn = self.get_connection()
+        cursor = conn.cursor()
+        cursor.execute('''
+            SELECT DATE(created_at) as day, COUNT(*) as cnt
+            FROM reports
+            WHERE created_at >= DATE('now', ?)
+            GROUP BY DATE(created_at)
+            ORDER BY day ASC
+        ''', (f'-{days} days',))
+        rows = cursor.fetchall()
+        conn.close()
+        return [{'day': r[0], 'count': r[1]} for r in rows if r[0]]
+
+    def get_reports_per_category(self):
+        """Get report count grouped by category."""
+        conn = self.get_connection()
+        cursor = conn.cursor()
+        cursor.execute('''
+            SELECT COALESCE(category, 'Uncategorized') as cat, COUNT(*) as cnt
+            FROM reports
+            GROUP BY cat
+            ORDER BY cnt DESC
+        ''')
+        rows = cursor.fetchall()
+        conn.close()
+        return [{'category': r[0], 'count': r[1]} for r in rows]
+
+    def get_reports_per_location(self):
+        """Get report count grouped by location."""
+        conn = self.get_connection()
+        cursor = conn.cursor()
+        cursor.execute('''
+            SELECT COALESCE(location, 'Unknown') as loc, COUNT(*) as cnt
+            FROM reports
+            GROUP BY loc
+            ORDER BY cnt DESC
+            LIMIT 10
+        ''')
+        rows = cursor.fetchall()
+        conn.close()
+        return [{'location': r[0], 'count': r[1]} for r in rows]
+
+    def get_resolution_rate(self):
+        """Get overall resolution rate (resolved / total)."""
+        conn = self.get_connection()
+        cursor = conn.cursor()
+        cursor.execute('SELECT COUNT(*) FROM reports')
+        total = cursor.fetchone()[0]
+        cursor.execute("SELECT COUNT(*) FROM reports WHERE LOWER(status) IN ('resolved', 'fixed')")
+        resolved = cursor.fetchone()[0]
+        conn.close()
+        return {'total': total, 'resolved': resolved,
+                'rate': round(resolved / total * 100, 1) if total > 0 else 0}
+
+    def get_total_users_count(self):
+        """Get count of registered users."""
+        conn = self.get_connection()
+        cursor = conn.cursor()
+        cursor.execute('SELECT COUNT(*) FROM users')
+        count = cursor.fetchone()[0]
+        conn.close()
+        return count
+
+    def get_top_reporters(self, limit=5):
+        """Get the users who filed the most reports."""
+        conn = self.get_connection()
+        cursor = conn.cursor()
+        cursor.execute('''
+            SELECT user_name, user_email, COUNT(*) as cnt
+            FROM reports
+            GROUP BY user_email
+            ORDER BY cnt DESC
+            LIMIT ?
+        ''', (limit,))
+        rows = cursor.fetchall()
+        conn.close()
+        return [{'name': r[0], 'email': r[1], 'count': r[2]} for r in rows]
 
 db = Database()

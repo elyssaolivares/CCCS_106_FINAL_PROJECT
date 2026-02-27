@@ -1,3 +1,4 @@
+import os
 import flet as ft
 from app.views.homepage import homepage
 from app.views.loginpage import loginpage
@@ -35,8 +36,12 @@ def main(page: ft.Page):
 
     homepage(page, go_to_login)
 
+import secrets as _secrets
+os.environ.setdefault("FLET_SECRET_KEY", _secrets.token_hex(16))
+
 ft.app(
     target=main,
     assets_dir="assets",
-    view=ft.WEB_BROWSER
+    upload_dir="storage/temp",
+    view=ft.WEB_BROWSER,
 )

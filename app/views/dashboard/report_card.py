@@ -1,82 +1,179 @@
 import flet as ft
 from app.services.database.database import db
 
+# === Color Palette (mirrors dashboard_ui) ===
+_BG = "#F5F7FA"
+_NAVY = "#0F2B5B"
+_NAVY_LIGHT = "#1A3A6B"
+_NAVY_MUTED = "#64748B"
+_ACCENT = "#1565C0"
+_WHITE = "#FFFFFF"
+_CARD = "#FFFFFF"
+_BORDER = "#E0E6ED"
+
+_STATUS_MAP = {
+    "pending":     {"text": "#B45309", "bg": "#FEF3C7", "icon": ft.Icons.SCHEDULE_OUTLINED},
+    "in progress": {"text": "#1565C0", "bg": "#DBEAFE", "icon": ft.Icons.AUTORENEW_ROUNDED},
+    "resolved":    {"text": "#15803D", "bg": "#DCFCE7", "icon": ft.Icons.CHECK_CIRCLE_OUTLINE},
+    "rejected":    {"text": "#DC2626", "bg": "#FEE2E2", "icon": ft.Icons.CANCEL_OUTLINED},
+}
+
+
 class ReportCard:
     def __init__(self, page: ft.Page, report, user_data, on_update):
         self.page = page
         self.report = report
         self.user_data = user_data
         self.on_update = on_update
-    
+
     def create(self):
         try:
-            latest = db.get_report_by_id(self.report.get('id'))
+            latest = db.get_report_by_id(self.report.get("id"))
             if latest:
                 self.report = latest
         except Exception:
             pass
 
-        location = self.report.get('location', 'Unknown Location')
-        description = self.report.get('issue_description', 'No description')
-        status = self.report.get('status', 'unknown')
-        
-        display_description = description[:50] + "..." if len(description) > 50 else description
-        
+        location = self.report.get("location", "Unknown Location")
+        description = self.report.get("issue_description", "No description")
+        status = self.report.get("status", "unknown")
+
+        display_description = (description[:80] + "...") if len(description) > 80 else description
+        status_key = (status or "").strip().lower()
+        palette = _STATUS_MAP.get(status_key, _STATUS_MAP["pending"])
+
+        remarks = self.report.get("admin_remarks")
+        updated_at = self.report.get("status_updated_at")
+        updated_by = self.report.get("status_updated_by")
+
+        # ── Build the column children ──
+        col_children = [
+            ft.Text(
+                location, size=13,
+                font_family="Poppins-SemiBold", color=_NAVY,
+                max_lines=1,
+                overflow=ft.TextOverflow.ELLIPSIS,
+            ),
+            ft.Text(
+                display_description, size=11,
+                font_family="Poppins-Light", color=_NAVY_MUTED,
+                max_lines=2,
+                overflow=ft.TextOverflow.ELLIPSIS,
+            ),
+            # Status pill
+            ft.Container(
+                content=ft.Text(
+                    status.title(), size=9,
+                    font_family="Poppins-SemiBold",
+                    color=palette["text"],
+                ),
+                bgcolor=palette["bg"],
+                padding=ft.padding.symmetric(horizontal=10, vertical=3),
+                border_radius=6,
+            ),
+        ]
+
+        # ── Admin remarks section ──
+        if remarks:
+            col_children.append(
+                ft.Container(
+                    content=ft.Row(
+                        [
+                            ft.Icon(ft.Icons.NOTES_ROUNDED, size=12, color=_ACCENT),
+                            ft.Column(
+                                [
+                                    ft.Text(
+                                        "Admin Note", size=9,
+                                        font_family="Poppins-SemiBold",
+                                        color=_ACCENT,
+                                    ),
+                                    ft.Text(
+                                        remarks, size=11,
+                                        font_family="Poppins-Light",
+                                        color=_NAVY_MUTED, italic=True,
+                                        max_lines=3,
+                                        overflow=ft.TextOverflow.ELLIPSIS,
+                                    ),
+                                ],
+                                spacing=1, expand=True,
+                            ),
+                        ],
+                        spacing=6,
+                        vertical_alignment=ft.CrossAxisAlignment.START,
+                    ),
+                    padding=ft.padding.symmetric(horizontal=10, vertical=8),
+                    bgcolor=ft.Colors.with_opacity(0.05, _ACCENT),
+                    border_radius=8,
+                    border=ft.border.all(1, ft.Colors.with_opacity(0.1, _ACCENT)),
+                    margin=ft.margin.only(top=2),
+                )
+            )
+
+        # ── Last updated info ──
+        if updated_at:
+            ts_display = str(updated_at)[:16].replace("T", " ") if updated_at else ""
+            by_display = f" by {updated_by}" if updated_by else ""
+            col_children.append(
+                ft.Row(
+                    [
+                        ft.Icon(ft.Icons.UPDATE_ROUNDED, size=10, color=_NAVY_MUTED),
+                        ft.Text(
+                            f"Updated {ts_display}{by_display}", size=9,
+                            font_family="Poppins-Light", color=_NAVY_MUTED,
+                        ),
+                    ],
+                    spacing=4,
+                )
+            )
+
         return ft.Container(
             content=ft.Row(
                 [
+                    # Status icon badge
+                    ft.Container(
+                        content=ft.Icon(palette["icon"], size=16, color=palette["text"]),
+                        width=34,
+                        height=34,
+                        border_radius=8,
+                        bgcolor=palette["bg"],
+                        alignment=ft.alignment.center,
+                    ),
+                    # Text content
                     ft.Column(
-                        [
-                            ft.Row([
-                                ft.Icon(ft.Icons.PLACE, size=20, color=ft.Colors.WHITE), 
-                                ft.Text(location.upper(), size=16, weight=ft.FontWeight.BOLD, color=ft.Colors.WHITE)
-                            ], spacing=8),
-                            ft.Text(display_description, size=14, color=ft.Colors.WHITE70),
-                            ft.Text(
-                                status.title(),
-                                size=12,
-                                color=self._get_status_color(status),
-                                italic=True
-                            ),
-                        ],
-                        spacing=5,
+                        col_children,
+                        spacing=3,
                         expand=True,
                     ),
+                    # 3-dot menu
                     ft.PopupMenuButton(
                         icon=ft.Icons.MORE_VERT,
-                        icon_color=ft.Colors.WHITE,
+                        icon_color=_NAVY_MUTED,
+                        icon_size=18,
                         items=[
-                            ft.PopupMenuItem(
-                                icon=ft.Icons.EDIT_OUTLINED,
-                                text="Edit",
-                                on_click=self._show_edit_dialog
-                            ),
-                            ft.PopupMenuItem(
-                                icon=ft.Icons.DELETE_OUTLINE,
-                                text="Delete",
-                                on_click=self._show_delete_dialog
-                            ),
+                            ft.PopupMenuItem(icon=ft.Icons.EDIT_OUTLINED, text="Edit", on_click=self._show_edit_dialog),
+                            ft.PopupMenuItem(icon=ft.Icons.DELETE_OUTLINE, text="Delete", on_click=self._show_delete_dialog),
                         ],
                     ),
                 ],
-                spacing=15,
+                spacing=10,
                 alignment=ft.MainAxisAlignment.START,
+                vertical_alignment=ft.CrossAxisAlignment.START,
             ),
-            padding=15,
-            margin=ft.margin.only(bottom=10),
-            bgcolor="#062C80",
-            border_radius=10,
-            border=ft.border.all(1, ft.Colors.with_opacity(0.1, ft.Colors.WHITE)),
+            padding=ft.padding.all(12),
+            margin=ft.margin.only(bottom=6),
+            bgcolor=_CARD,
+            border_radius=12,
+            border=ft.border.all(1, _BORDER),
         )
-    
+
+    # ── legacy helpers (kept for dialogs) ──
+    def _get_status_bg(self, status):
+        s = (status or "").strip().lower()
+        return _STATUS_MAP.get(s, _STATUS_MAP["pending"])["bg"]
+
     def _get_status_color(self, status):
-        color_map = {
-            'resolved': ft.Colors.GREEN,
-            'in progress': ft.Colors.ORANGE,
-            'rejected': ft.Colors.RED_400,
-            'pending': ft.Colors.AMBER_700,
-        }
-        return color_map.get((status or '').strip().lower(), ft.Colors.WHITE70)
+        s = (status or "").strip().lower()
+        return _STATUS_MAP.get(s, _STATUS_MAP["pending"])["text"]
     
     def _show_edit_dialog(self, e):
         location = self.report.get('location', 'Unknown Location')
@@ -87,14 +184,14 @@ class ReportCard:
         location_field = ft.TextField(
             value=location,
             label="Location",
-            border_color="#003D82",
-            focused_border_color="#003D82",
-            border_radius=8,
-            bgcolor=ft.Colors.WHITE,
-            color=ft.Colors.BLACK,
-            filled=True,
+            border_color=_BORDER,
+            focused_border_color=_ACCENT,
+            border_radius=10,
+            bgcolor=_BG,
+            color=_NAVY,
+            text_size=13,
         )
-        
+
         issue_field = ft.TextField(
             value=description,
             multiline=True,
@@ -102,12 +199,12 @@ class ReportCard:
             max_lines=5,
             label="Issue Description",
             hint_text="Describe the issue here...",
-            border_color="#003D82",
-            focused_border_color="#003D82",
-            border_radius=8,
-            bgcolor=ft.Colors.WHITE,
-            color=ft.Colors.BLACK,
-            filled=True,
+            border_color=_BORDER,
+            focused_border_color=_ACCENT,
+            border_radius=10,
+            bgcolor=_BG,
+            color=_NAVY,
+            text_size=13,
         )
         
         def save_and_close(e):
@@ -145,33 +242,33 @@ class ReportCard:
         
         dialog = ft.AlertDialog(
             modal=True,
-            title=ft.Text("Edit Report", weight=ft.FontWeight.BOLD, size=18),
+            title=ft.Text("Edit Report", font_family="Poppins-Bold", size=18, color=_NAVY),
             content=ft.Container(
                 content=ft.Column([
-                    location_field, 
-                    ft.Container(height=10), 
+                    location_field,
+                    ft.Container(height=10),
                     issue_field
                 ], spacing=10, tight=True),
-                width=400,
-                padding=10
+                padding=10,
             ),
             actions=[
                 ft.TextButton(
-                    "Cancel", 
+                    "Cancel",
                     on_click=lambda e: setattr(dialog, 'open', False) or self.page.update()
                 ),
                 ft.ElevatedButton(
-                    "OK", 
-                    on_click=save_and_close, 
-                    bgcolor=ft.Colors.DEEP_ORANGE_400, 
-                    color=ft.Colors.WHITE,
+                    "Save",
+                    on_click=save_and_close,
+                    bgcolor=_ACCENT,
+                    color=_WHITE,
                     style=ft.ButtonStyle(
-                        shape=ft.RoundedRectangleBorder(radius=8),
+                        shape=ft.RoundedRectangleBorder(radius=10),
                     ),
                 ),
             ],
             actions_alignment=ft.MainAxisAlignment.END,
-            bgcolor=ft.Colors.with_opacity(0.95, ft.Colors.WHITE)
+            bgcolor=_WHITE,
+            shape=ft.RoundedRectangleBorder(radius=16),
         )
         
         
@@ -216,30 +313,41 @@ class ReportCard:
         
         dialog = ft.AlertDialog(
             modal=True,
-            title=ft.Text("Confirm Delete", weight=ft.FontWeight.BOLD, color=ft.Colors.RED_900),
+            title=ft.Text("Delete Report", font_family="Poppins-Bold", color="#DC2626"),
             content=ft.Column(
                 [
-                    ft.Icon(ft.Icons.WARNING_AMBER_ROUNDED, color=ft.Colors.RED_400, size=48),
+                    ft.Container(
+                        content=ft.Icon(ft.Icons.WARNING_AMBER_ROUNDED, color="#DC2626", size=40),
+                        width=70,
+                        height=70,
+                        border_radius=35,
+                        bgcolor="#FEE2E2",
+                        alignment=ft.alignment.center,
+                    ),
                     ft.Container(height=10),
                     ft.Text(
-                        "Are you sure you want to delete this report?", 
-                        text_align=ft.TextAlign.CENTER, 
-                        weight=ft.FontWeight.W_500
-                    ),
-                    ft.Container(height=5),
-                    ft.Text(
-                        f'"{location}"',
+                        "Are you sure you want to delete this report?",
                         text_align=ft.TextAlign.CENTER,
+                        font_family="Poppins-Medium",
                         size=14,
-                        color=ft.Colors.GREY_800,
-                        italic=True
+                        color=_NAVY,
                     ),
                     ft.Container(height=5),
                     ft.Text(
-                        "This action cannot be undone.", 
-                        text_align=ft.TextAlign.CENTER, 
-                        size=12, 
-                        color=ft.Colors.GREY_700
+                        f'"  {location}"',
+                        text_align=ft.TextAlign.CENTER,
+                        size=13,
+                        color=_NAVY_MUTED,
+                        italic=True,
+                        font_family="Poppins-Light",
+                    ),
+                    ft.Container(height=5),
+                    ft.Text(
+                        "This action cannot be undone.",
+                        text_align=ft.TextAlign.CENTER,
+                        size=11,
+                        color=_NAVY_MUTED,
+                        font_family="Poppins-Light",
                     ),
                 ],
                 horizontal_alignment=ft.CrossAxisAlignment.CENTER,
@@ -247,20 +355,22 @@ class ReportCard:
             ),
             actions=[
                 ft.TextButton(
-                    "Cancel", 
+                    "Cancel",
                     on_click=lambda e: setattr(dialog, 'open', False) or self.page.update()
                 ),
                 ft.ElevatedButton(
-                    "Delete", 
-                    on_click=confirm_delete, 
-                    bgcolor=ft.Colors.RED_400, 
-                    color=ft.Colors.WHITE,
+                    "Delete",
+                    on_click=confirm_delete,
+                    bgcolor="#DC2626",
+                    color=_WHITE,
                     style=ft.ButtonStyle(
-                        shape=ft.RoundedRectangleBorder(radius=8),
+                        shape=ft.RoundedRectangleBorder(radius=10),
                     )
                 )
             ],
             actions_alignment=ft.MainAxisAlignment.END,
+            bgcolor=_WHITE,
+            shape=ft.RoundedRectangleBorder(radius=16),
         )
         
         

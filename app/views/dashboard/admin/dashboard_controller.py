@@ -35,10 +35,14 @@ class DashboardController:
     def update_stats_and_tabs(self, reports, counts):
         self.state.stats_row.controls.clear()
         self.state.stats_row.controls.extend([
-            self.ui_components.create_stat_card("Pending", counts.get("pending", 0), "#FFE5D9", "#FF6B35"),
-            self.ui_components.create_stat_card("In Progress", counts.get("in progress", 0), "#FFF9E6", "#FFC107"),
-            self.ui_components.create_stat_card("Resolved", counts.get("resolved", 0), "#E8F5E9", "#4CAF50"),
-            self.ui_components.create_stat_card("Rejected", counts.get("rejected", 0), "#FFEBEE", "#F44336"),
+            self.ui_components.create_stat_card("Pending", counts.get("pending", 0),
+                                                 ft.Icons.SCHEDULE_OUTLINED, "#B45309", "#FEF3C7"),
+            self.ui_components.create_stat_card("In Progress", counts.get("in progress", 0),
+                                                 ft.Icons.AUTORENEW_ROUNDED, "#1565C0", "#DBEAFE"),
+            self.ui_components.create_stat_card("Resolved", counts.get("resolved", 0),
+                                                 ft.Icons.CHECK_CIRCLE_OUTLINE, "#15803D", "#DCFCE7"),
+            self.ui_components.create_stat_card("Rejected", counts.get("rejected", 0),
+                                                 ft.Icons.CANCEL_OUTLINED, "#DC2626", "#FEE2E2"),
         ])
     
     def update_category_filter_buttons(self, reports, counts):

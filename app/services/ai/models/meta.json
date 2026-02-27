@@ -1,0 +1,12 @@
+{
+  "version": "20260227_110935",
+  "classes": [
+    "Building & Facilities",
+    "Classroom & Furniture",
+    "Cleaning & Sanitation",
+    "ICT & Equipment",
+    "Plumbing"
+  ],
+  "threshold": 0.4,
+  "knn_threshold": 0.3
+}

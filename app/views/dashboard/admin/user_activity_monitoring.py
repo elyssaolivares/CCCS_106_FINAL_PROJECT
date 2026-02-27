@@ -3,10 +3,27 @@
 import flet as ft
 from datetime import datetime, timedelta
 from app.services.activity.activity_monitor import activity_monitor
+from .admin_sidebar import create_admin_sidebar
+
+# ── Palette ──
+_BG = "#F5F7FA"
+_NAVY = "#0F2B5B"
+_NAVY_MUTED = "#64748B"
+_ACCENT = "#1565C0"
+_BORDER = "#E0E6ED"
+_BORDER_LIGHT = "#F1F5F9"
+_WHITE = "#FFFFFF"
+
+_SIDEBAR_BREAKPOINT = 768
 
 
 def user_activity_monitoring_page(page: ft.Page, user_data=None):
     page.controls.clear()
+    page.overlay.clear()
+    page.floating_action_button = None
+    page.end_drawer = None
+    page.drawer = None
+    page.scroll = None
     
     if not user_data:
         user_data = page.session.get("user_data")
@@ -18,6 +35,7 @@ def user_activity_monitoring_page(page: ft.Page, user_data=None):
         return
     
     is_dark = page.session.get("is_dark_theme") or False
+    is_mobile = not (page.width and page.width >= _SIDEBAR_BREAKPOINT)
     
     from app.views.dashboard.session_manager import SessionManager
     from app.views.dashboard.navigation_drawer import NavigationDrawerComponent
@@ -28,33 +46,56 @@ def user_activity_monitoring_page(page: ft.Page, user_data=None):
     
     nav_drawer = NavigationDrawerComponent(page, user_data, toggle_dark_theme)
     drawer = nav_drawer.create_drawer(is_dark)
-    page.end_drawer = drawer
+
+    # ── Admin sidebar ──
+    sidebar, _ = create_admin_sidebar(page, user_data, active_key="activity")
+    sidebar_wrapper = ft.Container(content=sidebar, visible=not is_mobile)
+
+    def go_back(e=None):
+        from .admin_dashboard import admin_dashboard
+        admin_dashboard(page, user_data)
+
+    def on_menu_click(e):
+        if drawer:
+            drawer.open = True
+            page.update()
     
     header = ft.Container(
         content=ft.Row(
             [
-                ft.Text(
-                    "User Activity Monitoring",
-                    size=20,
-                    font_family="Poppins-Bold",
-                    color=ft.Colors.WHITE if is_dark else ft.Colors.BLACK,
+                ft.Row(
+                    [
+                        ft.IconButton(
+                            ft.Icons.ARROW_BACK_ROUNDED,
+                            icon_color=_NAVY, icon_size=20,
+                            on_click=go_back,
+                        ),
+                        ft.Text(
+                            "User Activity Monitoring",
+                            size=18 if is_mobile else 20,
+                            font_family="Poppins-Bold",
+                            color=_NAVY,
+                        ),
+                    ],
+                    spacing=4,
+                    vertical_alignment=ft.CrossAxisAlignment.CENTER,
                 ),
-                ft.IconButton(
-                    icon=ft.Icons.MENU,
-                    icon_color=ft.Colors.BLACK,
-                    on_click=nav_drawer.open_drawer,
+                ft.Container(
+                    content=ft.IconButton(
+                        ft.Icons.MENU_ROUNDED, icon_color=_NAVY, icon_size=20,
+                        on_click=on_menu_click,
+                    ),
+                    width=36, height=36, border_radius=10,
+                    bgcolor=_BORDER_LIGHT, alignment=ft.alignment.center,
+                    visible=is_mobile,
                 ),
             ],
             alignment=ft.MainAxisAlignment.SPACE_BETWEEN,
+            vertical_alignment=ft.CrossAxisAlignment.CENTER,
         ),
-        padding=ft.padding.symmetric(horizontal=20, vertical=15),
-        bgcolor=ft.Colors.GREY_800 if is_dark else ft.Colors.WHITE,
-        shadow=ft.BoxShadow(
-            spread_radius=1,
-            blur_radius=10,
-            color=ft.Colors.with_opacity(0.2, ft.Colors.BLACK),
-            offset=ft.Offset(0, 2),
-        ),
+        padding=ft.padding.symmetric(horizontal=16 if is_mobile else 28, vertical=14),
+        bgcolor=_WHITE,
+        border=ft.border.only(bottom=ft.BorderSide(1, _BORDER)),
     )
     
     # Main content container - will hold different views
@@ -132,8 +173,8 @@ def user_activity_monitoring_page(page: ft.Page, user_data=None):
     search_email = ft.TextField(
         label="Search User Email",
         width=300,
-        border_color="#062C80",
-        focused_border_color="#093AA5",
+        border_color="#0F2B5B",
+        focused_border_color="#1565C0",
     )
     
     activity_list = ft.ListView(expand=True, spacing=8)
@@ -271,8 +312,8 @@ def user_activity_monitoring_page(page: ft.Page, user_data=None):
     failed_search_email = ft.TextField(
         label="Search User Email for Failed Attempts",
         width=300,
-        border_color="#062C80",
-        focused_border_color="#062C805",
+        border_color="#0F2B5B",
+        focused_border_color="#0F2B5B",
     )
     
     def load_failed_attempts(email):
@@ -353,7 +394,7 @@ def user_activity_monitoring_page(page: ft.Page, user_data=None):
     def show_all_users(e):
         main_view_container.content = all_users_view
         load_all_users_stats()
-        btn_all_users.style = ft.ButtonStyle(color="#062C80")
+        btn_all_users.style = ft.ButtonStyle(color="#0F2B5B")
         btn_user_details.style = ft.ButtonStyle(color=ft.Colors.GREY)
         btn_failed_attempts.style = ft.ButtonStyle(color=ft.Colors.GREY)
         page.update()
@@ -361,7 +402,7 @@ def user_activity_monitoring_page(page: ft.Page, user_data=None):
     def show_user_details(e):
         main_view_container.content = user_detail_view
         btn_all_users.style = ft.ButtonStyle(color=ft.Colors.GREY)
-        btn_user_details.style = ft.ButtonStyle(color="#062C80")
+        btn_user_details.style = ft.ButtonStyle(color="#0F2B5B")
         btn_failed_attempts.style = ft.ButtonStyle(color=ft.Colors.GREY)
         page.update()
     
@@ -369,13 +410,13 @@ def user_activity_monitoring_page(page: ft.Page, user_data=None):
         main_view_container.content = failed_attempts_view
         btn_all_users.style = ft.ButtonStyle(color=ft.Colors.GREY)
         btn_user_details.style = ft.ButtonStyle(color=ft.Colors.GREY)
-        btn_failed_attempts.style = ft.ButtonStyle(color="#062C80")
+        btn_failed_attempts.style = ft.ButtonStyle(color="#0F2B5B")
         page.update()
     
     btn_all_users = ft.TextButton(
         "All Users",
         on_click=show_all_users,
-        style=ft.ButtonStyle(color="#062C80"),
+        style=ft.ButtonStyle(color="#0F2B5B"),
     )
     btn_user_details = ft.TextButton(
         "User Details",
@@ -396,19 +437,55 @@ def user_activity_monitoring_page(page: ft.Page, user_data=None):
     # Initialize with all users view
     main_view_container.content = all_users_view
     load_all_users_stats()
-    
+
     # Main layout
-    main_content = ft.Column(
-        [
-            header,
-            ft.Container(height=20),
-            nav_bar,
-            ft.Container(height=10),
-            ft.Divider(height=1),
-            main_view_container,
-        ],
+    content_area = ft.Container(
+        content=ft.Column(
+            [
+                header,
+                ft.Container(
+                    content=ft.Column(
+                        [
+                            nav_bar,
+                            ft.Container(height=10),
+                            ft.Divider(height=1),
+                            main_view_container,
+                        ],
+                        expand=True,
+                        spacing=10,
+                    ),
+                    padding=ft.padding.symmetric(horizontal=12 if is_mobile else 25, vertical=10),
+                    expand=True,
+                ),
+            ],
+            spacing=0,
+            expand=True,
+        ),
         expand=True,
-        spacing=10,
+        bgcolor=_BG,
     )
-    
-    page.add(main_content)
+
+    # ── Resize handler ──
+    def on_resize(e):
+        nonlocal is_mobile
+        w = page.width or 0
+        was_mobile = is_mobile
+        is_mobile = w < _SIDEBAR_BREAKPOINT
+        if was_mobile != is_mobile:
+            sidebar_wrapper.visible = not is_mobile
+            page.update()
+
+    page.on_resized = on_resize
+
+    # ── Assemble ──
+    page.end_drawer = drawer
+    page.theme_mode = ft.ThemeMode.LIGHT
+    page.bgcolor = _BG
+
+    layout = ft.Row(
+        [sidebar_wrapper, content_area],
+        spacing=0, expand=True,
+        vertical_alignment=ft.CrossAxisAlignment.START,
+    )
+
+    page.add(layout)
