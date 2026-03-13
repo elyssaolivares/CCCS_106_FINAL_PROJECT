@@ -1,18 +1,17 @@
 """User Activity Monitoring Dashboard - displays login history, failed attempts, geo-location."""
 
 import flet as ft
-from datetime import datetime, timedelta
 from app.services.activity.activity_monitor import activity_monitor
 from .admin_sidebar import create_admin_sidebar
 
-# ── Palette ──
-_BG = "#F5F7FA"
-_NAVY = "#0F2B5B"
-_NAVY_MUTED = "#64748B"
-_ACCENT = "#1565C0"
-_BORDER = "#E0E6ED"
+_BG           = "#F5F7FA"
+_NAVY         = "#0F2B5B"
+_NAVY_MUTED   = "#64748B"
+_ACCENT       = "#1565C0"
+_BORDER       = "#E0E6ED"
 _BORDER_LIGHT = "#F1F5F9"
-_WHITE = "#FFFFFF"
+_WHITE        = "#FFFFFF"
+_CARD         = "#FFFFFF"
 
 _SIDEBAR_BREAKPOINT = 768
 
@@ -24,36 +23,40 @@ def user_activity_monitoring_page(page: ft.Page, user_data=None):
     page.end_drawer = None
     page.drawer = None
     page.scroll = None
-    
+
     if not user_data:
         user_data = page.session.get("user_data")
-    
+
     if not user_data or user_data.get("type", "").lower() != "admin":
         page.snack_bar = ft.SnackBar(ft.Text("Access Denied: Admin only"))
         page.snack_bar.open = True
         page.update()
         return
-    
+
     is_dark = page.session.get("is_dark_theme") or False
     is_mobile = not (page.width and page.width >= _SIDEBAR_BREAKPOINT)
-    # Resolve palette from theme
+
     from app.theme import get_colors as _get_theme
     _t = _get_theme(page)
-    _BG = _t["BG"]; _NAVY = _t["NAVY"]; _NAVY_MUTED = _t["NAVY_MUTED"]
-    _ACCENT = _t["ACCENT"]; _WHITE = _t["WHITE"]
-    _BORDER = _t["BORDER"]; _BORDER_LIGHT = _t["BORDER_LIGHT"]
+    _BG           = _t["BG"]
+    _NAVY         = _t["NAVY"]
+    _NAVY_MUTED   = _t["NAVY_MUTED"]
+    _ACCENT       = _t["ACCENT"]
+    _WHITE        = _t["WHITE"]
+    _BORDER       = _t["BORDER"]
+    _BORDER_LIGHT = _t["BORDER_LIGHT"]
+    _CARD         = _t["CARD"]
 
     from app.views.dashboard.session_manager import SessionManager
     from app.views.dashboard.navigation_drawer import NavigationDrawerComponent
-    
+
     def toggle_dark_theme(e):
         SessionManager.set_theme_preference(page, not is_dark)
         user_activity_monitoring_page(page, user_data)
-    
+
     nav_drawer = NavigationDrawerComponent(page, user_data, toggle_dark_theme)
     drawer = nav_drawer.create_drawer(is_dark)
 
-    # ── Admin sidebar ──
     sidebar, _ = create_admin_sidebar(page, user_data, active_key="activity", on_toggle_theme=toggle_dark_theme)
     sidebar_wrapper = ft.Container(content=sidebar, visible=not is_mobile)
 
@@ -65,7 +68,7 @@ def user_activity_monitoring_page(page: ft.Page, user_data=None):
         if drawer:
             drawer.open = True
             page.update()
-    
+
     header = ft.Container(
         content=ft.Row(
             [
@@ -76,11 +79,21 @@ def user_activity_monitoring_page(page: ft.Page, user_data=None):
                             icon_color=_NAVY, icon_size=20,
                             on_click=go_back,
                         ),
-                        ft.Text(
-                            "User Activity Monitoring",
-                            size=18 if is_mobile else 20,
-                            font_family="Poppins-Bold",
-                            color=_NAVY,
+                        ft.Column(
+                            [
+                                ft.Text(
+                                    "User Activity Monitoring",
+                                    size=18 if is_mobile else 20,
+                                    font_family="Poppins-Bold",
+                                    color=_NAVY,
+                                ),
+                                ft.Text(
+                                    "Login history, failed attempts & geo-location",
+                                    size=11,
+                                    color=_NAVY_MUTED,
+                                ),
+                            ],
+                            spacing=1,
                         ),
                     ],
                     spacing=4,
@@ -103,26 +116,102 @@ def user_activity_monitoring_page(page: ft.Page, user_data=None):
         bgcolor=_WHITE,
         border=ft.border.only(bottom=ft.BorderSide(1, _BORDER)),
     )
-    
-    # Main content container - will hold different views
-    main_view_container = ft.Container(expand=True)
-    
+
+    # ── Shared helpers ──
+    def _field(**kw):
+        return ft.TextField(
+            border_color=_BORDER,
+            focused_border_color=_ACCENT,
+            bgcolor=_CARD,
+            color=_NAVY,
+            label_style=ft.TextStyle(color=_NAVY_MUTED),
+            content_padding=ft.padding.symmetric(horizontal=12, vertical=10),
+            border_radius=8,
+            **kw,
+        )
+
+    def _mini_stat(label, value, value_color=None):
+        return ft.Container(
+            content=ft.Column(
+                [
+                    ft.Text(label, size=10, color=_NAVY_MUTED),
+                    ft.Text(str(value), size=16, font_family="Poppins-Bold",
+                            color=value_color or _NAVY),
+                ],
+                spacing=2,
+                horizontal_alignment=ft.CrossAxisAlignment.CENTER,
+            ),
+            padding=ft.padding.symmetric(horizontal=16, vertical=10),
+            bgcolor=_CARD,
+            border=ft.border.all(1, _BORDER),
+            border_radius=8,
+        )
+
+    def _search_btn(on_click):
+        return ft.ElevatedButton(
+            "Search",
+            icon=ft.Icons.SEARCH_ROUNDED,
+            on_click=on_click,
+            style=ft.ButtonStyle(
+                bgcolor=_ACCENT,
+                color="#FFFFFF",
+                shape=ft.RoundedRectangleBorder(radius=8),
+                padding=ft.padding.symmetric(horizontal=16, vertical=10),
+            ),
+        )
+
+    # ── Tab state ──
+    main_view_container = ft.Container()
+    tab_buttons = {}
+
+    _tab_defs = [
+        ("all_users",       ft.Icons.PEOPLE_ROUNDED,        "All Users"),
+        ("user_details",    ft.Icons.PERSON_SEARCH_ROUNDED,  "User Details"),
+        ("failed_attempts", ft.Icons.LOCK_PERSON_ROUNDED,    "Failed Attempts"),
+    ]
+
+    def switch_tab(key):
+        views = {
+            "all_users":       all_users_view,
+            "user_details":    user_detail_view,
+            "failed_attempts": failed_attempts_view,
+        }
+        main_view_container.content = views[key]
+        for k, btn in tab_buttons.items():
+            active = k == key
+            btn.bgcolor = _BORDER_LIGHT if active else "transparent"
+            btn.border = ft.border.only(
+                bottom=ft.BorderSide(2, _ACCENT if active else "transparent")
+            )
+            row = btn.content
+            row.controls[0].color = _ACCENT if active else _NAVY_MUTED
+            row.controls[1].color = _ACCENT if active else _NAVY_MUTED
+        page.update()
+
     # === TAB 1: All Users Stats ===
-    all_users_list = ft.ListView(expand=True, spacing=10)
-    
+    all_users_list = ft.Column(spacing=8)
+
     def load_all_users_stats():
         all_users_list.controls.clear()
         all_stats = activity_monitor.get_all_user_stats(limit=50)
-        
+
         if not all_stats:
             all_users_list.controls.append(
-                ft.Text("No user activity data available", color=ft.Colors.GREY)
+                ft.Column(
+                    [
+                        ft.Icon(ft.Icons.PEOPLE_OUTLINE_ROUNDED, size=40, color=_NAVY_MUTED),
+                        ft.Text("No user activity data available", size=13, color=_NAVY_MUTED),
+                    ],
+                    horizontal_alignment=ft.CrossAxisAlignment.CENTER,
+                    spacing=8,
+                )
             )
         else:
             for stat in all_stats:
-                last_login_str = stat['last_login'] if stat['last_login'] else "Never"
-                last_failed_str = stat['last_failed_attempt'] if stat['last_failed_attempt'] else "Never"
-                
+                last_login_str = stat["last_login"] if stat["last_login"] else "Never"
+                has_failed = stat["total_failed_attempts"] > 0
+                left_color = _t["RED"] if has_failed else _BORDER
+
                 card = ft.Container(
                     content=ft.Column(
                         [
@@ -130,31 +219,47 @@ def user_activity_monitoring_page(page: ft.Page, user_data=None):
                                 [
                                     ft.Column(
                                         [
-                                            ft.Text(stat['email'], size=12, font_family="Poppins-Bold"),
-                                            ft.Text(stat['last_login_location'] or "Unknown", 
-                                                   size=11, color=ft.Colors.GREY_700),
+                                            ft.Row(
+                                                [
+                                                    ft.Icon(ft.Icons.PERSON_OUTLINE_ROUNDED,
+                                                            size=14, color=_NAVY_MUTED),
+                                                    ft.Text(stat["email"], size=12,
+                                                            font_family="Poppins-Bold",
+                                                            color=_NAVY),
+                                                ],
+                                                spacing=4,
+                                            ),
+                                            ft.Text(
+                                                stat["last_login_location"] or "Unknown location",
+                                                size=11, color=_NAVY_MUTED,
+                                            ),
                                         ],
-                                        spacing=4,
+                                        spacing=3,
                                     ),
                                     ft.Column(
                                         [
-                                            ft.Text(f"Logins: {stat['total_logins']}", size=11),
-                                            ft.Text(f"Failed: {stat['total_failed_attempts']}", 
-                                                   size=11, 
-                                                   color=ft.Colors.RED if stat['total_failed_attempts'] > 0 else ft.Colors.GREEN),
+                                            ft.Text(
+                                                str(stat["total_logins"]) + " logins",
+                                                size=11, color=_NAVY,
+                                            ),
+                                            ft.Text(
+                                                str(stat["total_failed_attempts"]) + " failed",
+                                                size=11,
+                                                color=_t["RED"] if has_failed else _t["GREEN"],
+                                            ),
                                         ],
-                                        spacing=4,
+                                        spacing=3,
                                         horizontal_alignment=ft.CrossAxisAlignment.END,
                                     ),
                                 ],
                                 alignment=ft.MainAxisAlignment.SPACE_BETWEEN,
                                 expand=True,
                             ),
-                            ft.Divider(height=1),
+                            ft.Container(height=1, bgcolor=_BORDER),
                             ft.Row(
                                 [
-                                    ft.Text(f"Last Login: {last_login_str}", size=10, color=ft.Colors.GREY),
-                                    ft.Text(f"IP: {stat['last_login_ip'] or 'N/A'}", size=10, color=ft.Colors.GREY),
+                                    ft.Text("Last login: " + last_login_str, size=10, color=_NAVY_MUTED),
+                                    ft.Text("IP: " + (stat["last_login_ip"] or "N/A"), size=10, color=_NAVY_MUTED),
                                 ],
                                 alignment=ft.MainAxisAlignment.SPACE_BETWEEN,
                             ),
@@ -162,114 +267,138 @@ def user_activity_monitoring_page(page: ft.Page, user_data=None):
                         spacing=8,
                     ),
                     padding=ft.padding.all(12),
-                    bgcolor=ft.Colors.with_opacity(0.05, ft.Colors.WHITE) if is_dark else ft.Colors.with_opacity(0.05, ft.Colors.BLACK),
+                    bgcolor=_CARD,
+                    border=ft.border.only(
+                        left=ft.BorderSide(3, left_color),
+                        top=ft.BorderSide(1, _BORDER),
+                        right=ft.BorderSide(1, _BORDER),
+                        bottom=ft.BorderSide(1, _BORDER),
+                    ),
                     border_radius=8,
                 )
                 all_users_list.controls.append(card)
-        
+
         page.update()
-    
-    all_users_view = ft.Container(
-        content=all_users_list,
-        expand=True,
-        padding=ft.padding.all(15),
+
+    all_users_view = ft.Column(
+        [
+            ft.Row(
+                [
+                    ft.Icon(ft.Icons.PEOPLE_ROUNDED, size=16, color=_ACCENT),
+                    ft.Text("All Users", size=14, font_family="Poppins-Bold", color=_NAVY),
+                ],
+                spacing=6,
+            ),
+            ft.Text("Login statistics for all registered users", size=11, color=_NAVY_MUTED),
+            ft.Container(height=4),
+            all_users_list,
+        ],
+        spacing=6,
     )
-    
+
     # === TAB 2: User Activity Details ===
-    search_email = ft.TextField(
-        label="Search User Email",
-        width=300,
-        border_color="#0F2B5B",
-        focused_border_color="#1565C0",
-    )
-    
-    activity_list = ft.ListView(expand=True, spacing=8)
+    search_email = _field(label="Enter user email...", width=300)
+    activity_list = ft.Column(spacing=8)
     stats_display = ft.Column(spacing=10)
-    
+
     def load_user_activity(email):
         activity_list.controls.clear()
         stats_display.controls.clear()
-        
-        # Get and display stats
+
         stats = activity_monitor.get_user_stats(email)
         if stats:
-            last_login = stats['last_login'] if stats['last_login'] else "Never"
-            
+            last_login = stats["last_login"] if stats["last_login"] else "Never"
+            failed_color = _t["RED"] if stats["total_failed_attempts"] > 0 else _t["GREEN"]
+
             stats_display.controls.extend([
-                ft.Text(f"Email: {stats['email']}", size=12, font_family="Poppins-Bold"),
+                ft.Row(
+                    [
+                        _mini_stat("Total Logins", stats["total_logins"]),
+                        _mini_stat("Failed Attempts", stats["total_failed_attempts"], failed_color),
+                        _mini_stat("Last Login", last_login[:10] if last_login != "Never" else "Never"),
+                    ],
+                    spacing=10,
+                    wrap=True,
+                ),
+                ft.Container(height=4),
                 ft.Container(
-                    content=ft.Row(
+                    content=ft.Column(
                         [
-                            ft.Column([
-                                ft.Text("Total Logins", size=11, color=ft.Colors.GREY),
-                                ft.Text(str(stats['total_logins']), size=14, font_family="Poppins-Bold"),
-                            ]),
-                            ft.Column([
-                                ft.Text("Failed Attempts", size=11, color=ft.Colors.GREY),
-                                ft.Text(str(stats['total_failed_attempts']), size=14, 
-                                       font_family="Poppins-Bold", 
-                                       color=ft.Colors.RED if stats['total_failed_attempts'] > 0 else ft.Colors.GREEN),
-                            ]),
-                            ft.Column([
-                                ft.Text("Last Login", size=11, color=ft.Colors.GREY),
-                                ft.Text(last_login[:10] if last_login != "Never" else "Never", size=12),
-                            ]),
+                            ft.Row(
+                                [
+                                    ft.Icon(ft.Icons.LOCATION_ON_ROUNDED, size=14, color=_NAVY_MUTED),
+                                    ft.Text("Location Info", size=12,
+                                            font_family="Poppins-Bold", color=_NAVY),
+                                ],
+                                spacing=4,
+                            ),
+                            ft.Text("Last IP: " + (stats["last_login_ip"] or "N/A"), size=11, color=_NAVY_MUTED),
+                            ft.Text("Last Location: " + (stats["last_login_location"] or "Unknown"), size=11, color=_NAVY_MUTED),
                         ],
-                        spacing=30,
+                        spacing=4,
                     ),
                     padding=ft.padding.all(12),
-                    bgcolor=ft.Colors.with_opacity(0.05, ft.Colors.WHITE) if is_dark else ft.Colors.with_opacity(0.05, ft.Colors.BLACK),
+                    bgcolor=_CARD,
+                    border=ft.border.all(1, _BORDER),
                     border_radius=8,
                 ),
-                ft.Text("Location Info", size=12, font_family="Poppins-Bold"),
-                ft.Text(f"Last IP: {stats['last_login_ip'] or 'N/A'}", size=11),
-                ft.Text(f"Last Location: {stats['last_login_location'] or 'Unknown'}", size=11),
             ])
-        
-        # Get activity history
+
         activities = activity_monitor.get_user_activity(email, limit=50)
-        
         if not activities:
             activity_list.controls.append(
-                ft.Text("No activity history", color=ft.Colors.GREY)
+                ft.Column(
+                    [
+                        ft.Icon(ft.Icons.HISTORY_ROUNDED, size=36, color=_NAVY_MUTED),
+                        ft.Text("No activity history found", size=12, color=_NAVY_MUTED),
+                    ],
+                    horizontal_alignment=ft.CrossAxisAlignment.CENTER,
+                    spacing=8,
+                )
             )
         else:
             for activity in activities:
-                status_color = ft.Colors.GREEN if activity['status'] == 'success' else ft.Colors.RED
-                
-                details_text = ft.Text(f"Details: {activity['details']}", size=9, color=ft.Colors.GREY) if activity['details'] else None
-                
-                activity_card_controls = [
-                    ft.Row(
-                        [
-                            ft.Text(activity['type'].upper(), size=11, 
-                                   font_family="Poppins-Bold", color=status_color),
-                            ft.Text(activity['timestamp'][-8:] if activity['timestamp'] else "", 
-                                   size=10, color=ft.Colors.GREY),
-                        ],
-                        alignment=ft.MainAxisAlignment.SPACE_BETWEEN,
-                    ),
-                    ft.Text(f"IP: {activity['ip'] or 'N/A'}", size=10),
-                    ft.Text(f"Location: {activity['city']}, {activity['country']}", size=10),
-                    ft.Text(f"ISP: {activity['isp']}", size=10),
-                ]
-                
-                if details_text:
-                    activity_card_controls.append(details_text)
-                
-                activity_card = ft.Container(
+                is_success = activity["status"] == "success"
+                status_color = _t["GREEN"] if is_success else _t["RED"]
+                details_row = (
+                    [ft.Text("Details: " + activity["details"], size=9, color=_NAVY_MUTED)]
+                    if activity["details"] else []
+                )
+                card = ft.Container(
                     content=ft.Column(
-                        activity_card_controls,
-                        spacing=6,
+                        [
+                            ft.Row(
+                                [
+                                    ft.Text(activity["type"].upper(), size=11,
+                                            font_family="Poppins-Bold", color=status_color),
+                                    ft.Text(
+                                        activity["timestamp"][-8:] if activity["timestamp"] else "",
+                                        size=10, color=_NAVY_MUTED,
+                                    ),
+                                ],
+                                alignment=ft.MainAxisAlignment.SPACE_BETWEEN,
+                            ),
+                            ft.Text("IP: " + (activity["ip"] or "N/A"), size=10, color=_NAVY_MUTED),
+                            ft.Text("Location: " + activity["city"] + ", " + activity["country"], size=10, color=_NAVY_MUTED),
+                            ft.Text("ISP: " + activity["isp"], size=10, color=_NAVY_MUTED),
+                            *details_row,
+                        ],
+                        spacing=5,
                     ),
                     padding=ft.padding.all(10),
-                    bgcolor=ft.Colors.with_opacity(0.05, ft.Colors.WHITE) if is_dark else ft.Colors.with_opacity(0.05, ft.Colors.BLACK),
+                    bgcolor=_CARD,
+                    border=ft.border.only(
+                        left=ft.BorderSide(3, status_color),
+                        top=ft.BorderSide(1, _BORDER),
+                        right=ft.BorderSide(1, _BORDER),
+                        bottom=ft.BorderSide(1, _BORDER),
+                    ),
                     border_radius=8,
                 )
-                activity_list.controls.append(activity_card)
-        
+                activity_list.controls.append(card)
+
         page.update()
-    
+
     def on_search_click(e):
         email = search_email.value.strip()
         if not email:
@@ -278,88 +407,108 @@ def user_activity_monitoring_page(page: ft.Page, user_data=None):
             page.update()
             return
         load_user_activity(email)
-    
-    user_detail_view = ft.Container(
-        content=ft.Column(
-            [
-                ft.Row(
-                    [
-                        search_email,
-                        ft.IconButton(
-                            icon=ft.Icons.SEARCH,
-                            on_click=on_search_click,
-                            tooltip="Search user activity",
-                        ),
-                    ],
-                    spacing=10,
-                ),
-                ft.Divider(),
-                ft.Container(
-                    content=stats_display,
-                    bgcolor=ft.Colors.with_opacity(0.02, ft.Colors.WHITE) if is_dark else ft.Colors.with_opacity(0.02, ft.Colors.BLACK),
-                    padding=ft.padding.all(12),
-                    border_radius=8,
-                ),
-                ft.Text("Activity History", size=12, font_family="Poppins-Bold"),
-                ft.Container(
-                    content=activity_list,
-                    expand=True,
-                ),
-            ],
-            expand=True,
-            spacing=12,
-        ),
-        padding=ft.padding.all(15),
-        expand=True,
+
+    user_detail_view = ft.Column(
+        [
+            ft.Row(
+                [
+                    ft.Icon(ft.Icons.PERSON_SEARCH_ROUNDED, size=16, color=_ACCENT),
+                    ft.Text("User Details", size=14, font_family="Poppins-Bold", color=_NAVY),
+                ],
+                spacing=6,
+            ),
+            ft.Text("Search a user to view their activity stats and login history", size=11, color=_NAVY_MUTED),
+            ft.Container(height=4),
+            ft.Row(
+                [search_email, _search_btn(on_search_click)],
+                spacing=10,
+                vertical_alignment=ft.CrossAxisAlignment.END,
+            ),
+            ft.Container(height=6),
+            stats_display,
+            ft.Container(height=4),
+            ft.Row(
+                [
+                    ft.Icon(ft.Icons.HISTORY_ROUNDED, size=14, color=_NAVY_MUTED),
+                    ft.Text("Activity History", size=13, font_family="Poppins-Bold", color=_NAVY),
+                ],
+                spacing=6,
+            ),
+            activity_list,
+        ],
+        spacing=8,
     )
-    
+
     # === TAB 3: Failed Attempts ===
-    failed_attempts_list = ft.ListView(expand=True, spacing=8)
-    failed_search_email = ft.TextField(
-        label="Search User Email for Failed Attempts",
-        width=300,
-        border_color="#0F2B5B",
-        focused_border_color="#0F2B5B",
-    )
-    
+    failed_attempts_list = ft.Column(spacing=8)
+    failed_search_email = _field(label="Enter user email for failed attempts...", width=300)
+
     def load_failed_attempts(email):
         failed_attempts_list.controls.clear()
-        
+
         attempts = activity_monitor.get_failed_attempts(email, limit=50)
-        
+
         if not attempts:
             failed_attempts_list.controls.append(
-                ft.Text("No failed attempts recorded", color=ft.Colors.GREEN)
+                ft.Column(
+                    [
+                        ft.Icon(ft.Icons.CHECK_CIRCLE_OUTLINE_ROUNDED, size=36, color=_t["GREEN"]),
+                        ft.Text("No failed attempts recorded", size=12, color=_NAVY_MUTED),
+                    ],
+                    horizontal_alignment=ft.CrossAxisAlignment.CENTER,
+                    spacing=8,
+                )
             )
         else:
             for attempt in attempts:
-                attempt_card = ft.Container(
+                reason_badge = ft.Container(
+                    content=ft.Text(attempt["reason"] or "Unknown", size=10, color=_t["RED"]),
+                    bgcolor=_t["RED_BG"],
+                    padding=ft.padding.symmetric(horizontal=8, vertical=3),
+                    border_radius=12,
+                )
+                card = ft.Container(
                     content=ft.Column(
                         [
                             ft.Row(
                                 [
-                                    ft.Text("Failed Login Attempt", size=11, 
-                                           font_family="Poppins-Bold", color=ft.Colors.RED),
-                                    ft.Text(attempt['timestamp'][-8:] if attempt['timestamp'] else "", 
-                                           size=10, color=ft.Colors.GREY),
+                                    ft.Row(
+                                        [
+                                            ft.Icon(ft.Icons.LOCK_OUTLINE_ROUNDED,
+                                                    size=13, color=_t["RED"]),
+                                            ft.Text("Failed Login", size=11,
+                                                    font_family="Poppins-Bold", color=_t["RED"]),
+                                        ],
+                                        spacing=4,
+                                    ),
+                                    ft.Text(
+                                        attempt["timestamp"][-8:] if attempt["timestamp"] else "",
+                                        size=10, color=_NAVY_MUTED,
+                                    ),
                                 ],
                                 alignment=ft.MainAxisAlignment.SPACE_BETWEEN,
                             ),
-                            ft.Text(f"Email: {attempt['email']}", size=10),
-                            ft.Text(f"IP: {attempt['ip']}", size=10),
-                            ft.Text(f"Location: {attempt['location']}", size=10),
-                            ft.Text(f"Reason: {attempt['reason']}", size=10, color=ft.Colors.ORANGE),
+                            ft.Text("Email: " + attempt["email"], size=10, color=_NAVY_MUTED),
+                            ft.Text("IP: " + attempt["ip"], size=10, color=_NAVY_MUTED),
+                            ft.Text("Location: " + attempt["location"], size=10, color=_NAVY_MUTED),
+                            reason_badge,
                         ],
-                        spacing=6,
+                        spacing=5,
                     ),
                     padding=ft.padding.all(10),
-                    bgcolor=ft.Colors.with_opacity(0.1, ft.Colors.RED) if is_dark else ft.Colors.with_opacity(0.05, ft.Colors.RED),
+                    bgcolor=_CARD,
+                    border=ft.border.only(
+                        left=ft.BorderSide(3, _t["RED"]),
+                        top=ft.BorderSide(1, _BORDER),
+                        right=ft.BorderSide(1, _BORDER),
+                        bottom=ft.BorderSide(1, _BORDER),
+                    ),
                     border_radius=8,
                 )
-                failed_attempts_list.controls.append(attempt_card)
-        
+                failed_attempts_list.controls.append(card)
+
         page.update()
-    
+
     def on_failed_search_click(e):
         email = failed_search_email.value.strip()
         if not email:
@@ -368,83 +517,67 @@ def user_activity_monitoring_page(page: ft.Page, user_data=None):
             page.update()
             return
         load_failed_attempts(email)
-    
-    failed_attempts_view = ft.Container(
-        content=ft.Column(
-            [
-                ft.Row(
-                    [
-                        failed_search_email,
-                        ft.IconButton(
-                            icon=ft.Icons.SEARCH,
-                            on_click=on_failed_search_click,
-                            tooltip="Search failed attempts",
-                        ),
-                    ],
-                    spacing=10,
-                ),
-                ft.Divider(),
-                ft.Container(
-                    content=failed_attempts_list,
-                    expand=True,
-                ),
-            ],
-            expand=True,
-            spacing=12,
+
+    failed_attempts_view = ft.Column(
+        [
+            ft.Row(
+                [
+                    ft.Icon(ft.Icons.LOCK_PERSON_ROUNDED, size=16, color=_t["RED"]),
+                    ft.Text("Failed Attempts", size=14, font_family="Poppins-Bold", color=_NAVY),
+                ],
+                spacing=6,
+            ),
+            ft.Text("Search a user to view their failed login attempts", size=11, color=_NAVY_MUTED),
+            ft.Container(height=4),
+            ft.Row(
+                [failed_search_email, _search_btn(on_failed_search_click)],
+                spacing=10,
+                vertical_alignment=ft.CrossAxisAlignment.END,
+            ),
+            ft.Container(height=6),
+            failed_attempts_list,
+        ],
+        spacing=8,
+    )
+
+    # ── Build tab buttons (views must be defined before this) ──
+    def _make_tab_btn(key, icon, label):
+        is_active = key == "all_users"
+        btn = ft.Container(
+            content=ft.Row(
+                [
+                    ft.Icon(icon, size=14,
+                            color=_ACCENT if is_active else _NAVY_MUTED),
+                    ft.Text(label, size=13, font_family="Poppins-SemiBold",
+                            color=_ACCENT if is_active else _NAVY_MUTED),
+                ],
+                spacing=5,
+                tight=True,
+            ),
+            padding=ft.padding.symmetric(horizontal=14, vertical=8),
+            border_radius=ft.border_radius.only(top_left=6, top_right=6),
+            bgcolor=_BORDER_LIGHT if is_active else "transparent",
+            border=ft.border.only(
+                bottom=ft.BorderSide(2, _ACCENT if is_active else "transparent")
+            ),
+            on_click=lambda e, k=key: switch_tab(k),
+            ink=True,
+        )
+        tab_buttons[key] = btn
+        return btn
+
+    tab_bar = ft.Container(
+        content=ft.Row(
+            [_make_tab_btn(k, ico, lbl) for k, ico, lbl in _tab_defs],
+            spacing=4,
         ),
-        padding=ft.padding.all(15),
-        expand=True,
+        border=ft.border.only(bottom=ft.BorderSide(1, _BORDER)),
+        padding=ft.padding.only(left=4, bottom=0),
     )
-    
-    # Navigation buttons to switch views
-    def show_all_users(e):
-        main_view_container.content = all_users_view
-        load_all_users_stats()
-        btn_all_users.style = ft.ButtonStyle(color="#0F2B5B")
-        btn_user_details.style = ft.ButtonStyle(color=ft.Colors.GREY)
-        btn_failed_attempts.style = ft.ButtonStyle(color=ft.Colors.GREY)
-        page.update()
-    
-    def show_user_details(e):
-        main_view_container.content = user_detail_view
-        btn_all_users.style = ft.ButtonStyle(color=ft.Colors.GREY)
-        btn_user_details.style = ft.ButtonStyle(color="#0F2B5B")
-        btn_failed_attempts.style = ft.ButtonStyle(color=ft.Colors.GREY)
-        page.update()
-    
-    def show_failed_attempts(e):
-        main_view_container.content = failed_attempts_view
-        btn_all_users.style = ft.ButtonStyle(color=ft.Colors.GREY)
-        btn_user_details.style = ft.ButtonStyle(color=ft.Colors.GREY)
-        btn_failed_attempts.style = ft.ButtonStyle(color="#0F2B5B")
-        page.update()
-    
-    btn_all_users = ft.TextButton(
-        "All Users",
-        on_click=show_all_users,
-        style=ft.ButtonStyle(color="#0F2B5B"),
-    )
-    btn_user_details = ft.TextButton(
-        "User Details",
-        on_click=show_user_details,
-        style=ft.ButtonStyle(color=ft.Colors.GREY),
-    )
-    btn_failed_attempts = ft.TextButton(
-        "Failed Attempts",
-        on_click=show_failed_attempts,
-        style=ft.ButtonStyle(color=ft.Colors.GREY),
-    )
-    
-    nav_bar = ft.Row(
-        [btn_all_users, btn_user_details, btn_failed_attempts],
-        spacing=10,
-    )
-    
-    # Initialize with all users view
+
     main_view_container.content = all_users_view
     load_all_users_stats()
 
-    # Main layout
     content_area = ft.Container(
         content=ft.Column(
             [
@@ -452,26 +585,24 @@ def user_activity_monitoring_page(page: ft.Page, user_data=None):
                 ft.Container(
                     content=ft.Column(
                         [
-                            nav_bar,
-                            ft.Container(height=10),
-                            ft.Divider(height=1),
+                            tab_bar,
+                            ft.Container(height=14),
                             main_view_container,
                         ],
-                        expand=True,
-                        spacing=10,
+                        spacing=0,
                     ),
-                    padding=ft.padding.symmetric(horizontal=12 if is_mobile else 25, vertical=10),
-                    expand=True,
+                    padding=ft.padding.symmetric(
+                        horizontal=16 if is_mobile else 28, vertical=14
+                    ),
                 ),
             ],
             spacing=0,
-            expand=True,
+            scroll=ft.ScrollMode.AUTO,
         ),
         expand=True,
         bgcolor=_BG,
     )
 
-    # ── Resize handler ──
     def on_resize(e):
         nonlocal is_mobile
         w = page.width or 0
@@ -483,15 +614,15 @@ def user_activity_monitoring_page(page: ft.Page, user_data=None):
 
     page.on_resized = on_resize
 
-    # ── Assemble ──
-    page.end_drawer = drawer
-    page.theme_mode = ft.ThemeMode.DARK if is_dark else ft.ThemeMode.LIGHT
-    page.bgcolor = _BG
+    if drawer:
+        page.drawer = drawer
 
-    layout = ft.Row(
-        [sidebar_wrapper, content_area],
-        spacing=0, expand=True,
-        vertical_alignment=ft.CrossAxisAlignment.START,
+    page.controls.append(
+        ft.Row(
+            [sidebar_wrapper, content_area],
+            spacing=0,
+            expand=True,
+            vertical_alignment=ft.CrossAxisAlignment.START,
+        )
     )
-
-    page.add(layout)
+    page.update()
