@@ -1,0 +1,5 @@
+{
+  "code-runner.ignoreSelection": true,
+  "code-runner.runInTerminal": true,
+  "code-runner.fileDirectoryAsCwd": true
+}

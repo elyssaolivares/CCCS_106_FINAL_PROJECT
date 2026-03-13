@@ -68,7 +68,13 @@ class DashboardUI:
 
     # ── Sidebar ──────────────────────────────────────
     @staticmethod
-    def create_sidebar(first_name, user_data, on_nav, on_logout, active="home"):
+    def create_sidebar(first_name, user_data, on_nav, on_logout, active="home", is_dark=False, on_toggle_theme=None):
+        from app.theme import DARK, LIGHT as _LIGHT
+        _col = DARK if is_dark else _LIGHT
+        _BG = _col["BG"]; _NAVY = _col["NAVY"]; _NAVY_LIGHT = _col["NAVY_LIGHT"]
+        _NAVY_MUTED = _col["NAVY_MUTED"]; _ACCENT = _col["ACCENT"]
+        _WHITE = _col["WHITE"]; _CARD = _col["CARD"]
+        _BORDER = _col["BORDER"]; _BORDER_LIGHT = _col["BORDER_LIGHT"]
         user_name = user_data.get("name", "User") if user_data else "User"
         user_email = user_data.get("email", "") if user_data else ""
         first_letter = user_name[0].upper() if user_name else "U"
@@ -133,6 +139,50 @@ class DashboardUI:
                     ft.Container(expand=True),
                     # Divider
                     ft.Container(height=1, bgcolor=_BORDER, margin=ft.margin.symmetric(horizontal=12)),
+                    ft.Container(height=4),
+                    # Theme toggle (desktop)
+                    *([ft.Container(
+                        content=ft.TextButton(
+                            content=ft.Row(
+                                [
+                                    ft.Container(
+                                        content=ft.Icon(
+                                            ft.Icons.LIGHT_MODE_ROUNDED if is_dark else ft.Icons.DARK_MODE_ROUNDED,
+                                            color=_ACCENT, size=18,
+                                        ),
+                                        width=34, height=34, border_radius=10,
+                                        bgcolor=ft.Colors.with_opacity(0.10, _ACCENT),
+                                        alignment=ft.alignment.center,
+                                    ),
+                                    ft.Text(
+                                        "Light Mode" if is_dark else "Dark Mode",
+                                        color=_NAVY, size=13, font_family="Poppins-Medium", expand=True,
+                                    ),
+                                    ft.Container(
+                                        content=ft.Text(
+                                            "ON" if is_dark else "OFF",
+                                            size=9, font_family="Poppins-SemiBold",
+                                            color=_ACCENT if is_dark else _NAVY_MUTED,
+                                        ),
+                                        padding=ft.padding.symmetric(horizontal=6, vertical=3),
+                                        border_radius=6,
+                                        bgcolor=ft.Colors.with_opacity(0.12, _ACCENT) if is_dark else _BORDER_LIGHT,
+                                    ),
+                                ],
+                                spacing=10,
+                                vertical_alignment=ft.CrossAxisAlignment.CENTER,
+                            ),
+                            on_click=on_toggle_theme,
+                            style=ft.ButtonStyle(
+                                padding=ft.padding.symmetric(horizontal=10, vertical=10),
+                                shape=ft.RoundedRectangleBorder(radius=10),
+                                overlay_color=ft.Colors.with_opacity(0.06, _ACCENT),
+                            ),
+                        ),
+                        margin=ft.margin.symmetric(horizontal=8),
+                    )] if on_toggle_theme else []),
+                    ft.Container(height=4),
+                    ft.Container(height=1, bgcolor=_BORDER, margin=ft.margin.symmetric(horizontal=12)),
                     ft.Container(height=8),
                     # Logout
                     ft.Container(
@@ -183,7 +233,12 @@ class DashboardUI:
 
     # ── Top Bar ──────────────────────────────────────
     @staticmethod
-    def create_top_bar(first_name, user_type, on_report_click, on_menu_click=None, is_mobile=False):
+    def create_top_bar(first_name, user_type, on_report_click, on_menu_click=None, is_mobile=False, is_dark=False):
+        from app.theme import DARK, LIGHT as _LIGHT
+        _col = DARK if is_dark else _LIGHT
+        _NAVY = _col["NAVY"]; _NAVY_MUTED = _col["NAVY_MUTED"]
+        _ACCENT = _col["ACCENT"]; _WHITE = _col["WHITE"]
+        _BORDER = _col["BORDER"]; _BORDER_LIGHT = _col["BORDER_LIGHT"]
         role_badge = " · Admin" if user_type == "admin" else ""
 
         menu_btn = ft.Container(
@@ -240,7 +295,7 @@ class DashboardUI:
                                 overflow=ft.TextOverflow.ELLIPSIS,
                             ),
                             ft.Text(
-                                "Here's your report overview",
+                                "Track all your reports and their status",
                                 size=sub_size,
                                 font_family="Poppins-Light",
                                 color=_NAVY_MUTED,
@@ -263,61 +318,167 @@ class DashboardUI:
             border=ft.border.only(bottom=ft.BorderSide(1, _BORDER)),
         )
 
-    # ── Stat Cards 2x2 (responsive) ──────────────────
+    # ── Analytics Board (hero + status cards) ───────
     @staticmethod
-    def create_statistics_grid(total, resolved, pending, ongoing):
+    def create_statistics_grid(total, resolved, pending, ongoing, rejected=0, is_mobile=False, status_card_refs=None, is_dark=False):
+        from app.theme import DARK, LIGHT as _LIGHT
+        _col = DARK if is_dark else _LIGHT
+        _NAVY = _col["NAVY"]; _NAVY_MUTED = _col["NAVY_MUTED"]
+        _WHITE = _col["WHITE"]; _CARD = _col["CARD"]; _BORDER = _col["BORDER"]
+        _PENDING_TEXT = _col["PENDING_TEXT"]; _PENDING_BG = _col["PENDING_BG"]
+        _ONGOING_TEXT = _col["ONGOING_TEXT"]; _ONGOING_BG = _col["ONGOING_BG"]
+        _RESOLVED_TEXT = _col["RESOLVED_TEXT"]; _RESOLVED_BG = _col["RESOLVED_BG"]
+        _REJECTED_TEXT = _col["REJECTED_TEXT"]; _REJECTED_BG = _col["REJECTED_BG"]
 
-        def stat_tile(label, value, icon, accent, bg_tint, trend_text=""):
-            tile = ft.Container(
+        def ratio(value):
+            if total <= 0:
+                return 0.0
+            return value / total
+
+        def percent_text(value):
+            return f"{int(round(ratio(value) * 100))}%"
+
+        def status_card(label, value, icon, accent, bg_tint, card_col=None, compact=False):
+            number_size = 24 if compact else 28
+            label_size = 11 if compact else 12
+            percent_size = 11 if compact else 12
+            icon_size = 16 if compact else 18
+            icon_box = 32 if compact else 36
+            progress_h = 5 if compact else 6
+            card_padding = 12 if compact else 16
+            card_ref = ft.Ref[ft.Container]()
+
+            card = ft.Container(
                 content=ft.Column(
                     [
                         ft.Row(
                             [
                                 ft.Container(
-                                    content=ft.Icon(icon, size=18, color=accent),
-                                    width=36,
-                                    height=36,
-                                    border_radius=10,
+                                    content=ft.Icon(icon, size=icon_size, color=accent),
+                                    width=icon_box,
+                                    height=icon_box,
+                                    border_radius=11,
                                     bgcolor=bg_tint,
                                     alignment=ft.alignment.center,
                                 ),
                                 ft.Container(expand=True),
-                                ft.Text(
-                                    trend_text, size=10,
-                                    font_family="Poppins-Medium",
-                                    color=accent,
-                                ) if trend_text else ft.Container(),
+                                ft.Text(percent_text(value), size=percent_size, color=accent, font_family="Poppins-SemiBold"),
                             ],
                             vertical_alignment=ft.CrossAxisAlignment.CENTER,
                         ),
-                        ft.Container(height=8),
-                        ft.Text(str(value), size=26, font_family="Poppins-Bold", color=_NAVY),
-                        ft.Text(label, size=11, font_family="Poppins-Medium", color=_NAVY_MUTED,
-                                max_lines=1, overflow=ft.TextOverflow.ELLIPSIS),
+                        ft.Container(height=10),
+                        ft.Text(str(value), size=number_size, font_family="Poppins-Bold", color=_NAVY),
+                        ft.Text(label, size=label_size, color=_NAVY_MUTED, font_family="Poppins-Medium"),
+                        ft.Container(height=10),
+                        ft.ProgressBar(
+                            value=ratio(value),
+                            bar_height=progress_h,
+                            color=accent,
+                            bgcolor=ft.Colors.with_opacity(0.35, bg_tint),
+                            border_radius=8,
+                        ),
                     ],
                     spacing=0,
                 ),
-                padding=ft.padding.all(16),
+                padding=ft.padding.all(card_padding),
                 bgcolor=_CARD,
-                border_radius=14,
+                border_radius=16,
                 border=ft.border.all(1, _BORDER),
+                opacity=0,
+                animate_opacity=ft.Animation(280, ft.AnimationCurve.EASE_OUT),
+                width=170 if compact else None,
+                ref=card_ref,
             )
-            # ResponsiveRow col: 6 = half-width on sm+, 6 on xs (2-per-row always)
-            tile.col = {"xs": 6, "sm": 6, "md": 6, "lg": 3}
-            return tile
+            if status_card_refs is not None:
+                status_card_refs.append(card_ref)
+            if card_col:
+                card.col = card_col
+            return card
 
-        tiles = [
-            stat_tile("Total Reports", total, ft.Icons.DESCRIPTION_OUTLINED, _NAVY, _BORDER_LIGHT),
-            stat_tile("Pending", pending, ft.Icons.SCHEDULE_OUTLINED, _PENDING_TEXT, _PENDING_BG),
-            stat_tile("In Progress", ongoing, ft.Icons.AUTORENEW_ROUNDED, _ONGOING_TEXT, _ONGOING_BG),
-            stat_tile("Resolved", resolved, ft.Icons.CHECK_CIRCLE_OUTLINE, _RESOLVED_TEXT, _RESOLVED_BG),
+        completion_ratio = ratio(resolved)
+        hero_card = ft.Container(
+            content=ft.Row(
+                [
+                    ft.Column(
+                        [
+                            ft.Text("Analytics Overview", size=12 if is_mobile else 13, color=ft.Colors.with_opacity(0.85, _WHITE), font_family="Poppins-Medium"),
+                            ft.Container(height=4),
+                            ft.Text(str(total), size=34 if is_mobile else 38, color=_WHITE, font_family="Poppins-Bold"),
+                            ft.Text("Total submitted reports", size=11 if is_mobile else 12, color=ft.Colors.with_opacity(0.85, _WHITE), font_family="Poppins-Light"),
+                        ],
+                        spacing=0,
+                        expand=True,
+                    ),
+                    ft.Container(
+                        content=ft.Column(
+                            [
+                                ft.Text("Completion", size=10 if is_mobile else 11, color=ft.Colors.with_opacity(0.85, _WHITE), font_family="Poppins-Medium"),
+                                ft.Text(percent_text(resolved), size=22 if is_mobile else 24, color=_WHITE, font_family="Poppins-Bold"),
+                                ft.Container(height=8),
+                                ft.ProgressBar(
+                                    value=completion_ratio,
+                                    bar_height=7,
+                                    color=_WHITE,
+                                    bgcolor=ft.Colors.with_opacity(0.25, _WHITE),
+                                    border_radius=8,
+                                    width=96 if is_mobile else 120,
+                                ),
+                            ],
+                            spacing=0,
+                            horizontal_alignment=ft.CrossAxisAlignment.END,
+                        ),
+                        alignment=ft.alignment.center_right,
+                    ),
+                ],
+                spacing=10,
+                vertical_alignment=ft.CrossAxisAlignment.CENTER,
+            ),
+            padding=ft.padding.symmetric(horizontal=16 if is_mobile else 20, vertical=15 if is_mobile else 18),
+            border_radius=18,
+            gradient=ft.LinearGradient(
+                begin=ft.alignment.top_left,
+                end=ft.alignment.bottom_right,
+                colors=["#102A56", "#1565C0"],
+            ),
+            shadow=ft.BoxShadow(
+                spread_radius=0,
+                blur_radius=20,
+                color=ft.Colors.with_opacity(0.20, "#0B1B3D"),
+                offset=ft.Offset(0, 8),
+            ),
+        )
+        hero_card.col = {"xs": 12, "sm": 12, "md": 12, "lg": 12}
+
+        if is_mobile:
+            cards_row = ft.Row(
+                [
+                    status_card("Pending", pending, ft.Icons.SCHEDULE_OUTLINED, _PENDING_TEXT, _PENDING_BG, compact=True),
+                    status_card("In Progress", ongoing, ft.Icons.AUTORENEW_ROUNDED, _ONGOING_TEXT, _ONGOING_BG, compact=True),
+                    status_card("Resolved", resolved, ft.Icons.CHECK_CIRCLE_OUTLINE, _RESOLVED_TEXT, _RESOLVED_BG, compact=True),
+                    status_card("Rejected", rejected, ft.Icons.CANCEL_OUTLINED, _REJECTED_TEXT, _REJECTED_BG, compact=True),
+                ],
+                spacing=8,
+                scroll=ft.ScrollMode.AUTO,
+                tight=True,
+            )
+            return ft.Column([hero_card, cards_row], spacing=10)
+
+        cards = [
+            status_card("Pending", pending, ft.Icons.SCHEDULE_OUTLINED, _PENDING_TEXT, _PENDING_BG, card_col={"xs": 6, "sm": 6, "md": 3, "lg": 3}),
+            status_card("In Progress", ongoing, ft.Icons.AUTORENEW_ROUNDED, _ONGOING_TEXT, _ONGOING_BG, card_col={"xs": 6, "sm": 6, "md": 3, "lg": 3}),
+            status_card("Resolved", resolved, ft.Icons.CHECK_CIRCLE_OUTLINE, _RESOLVED_TEXT, _RESOLVED_BG, card_col={"xs": 6, "sm": 6, "md": 3, "lg": 3}),
+            status_card("Rejected", rejected, ft.Icons.CANCEL_OUTLINED, _REJECTED_TEXT, _REJECTED_BG, card_col={"xs": 6, "sm": 6, "md": 3, "lg": 3}),
         ]
 
-        return ft.ResponsiveRow(tiles, spacing=10, run_spacing=10)
+        return ft.ResponsiveRow([hero_card, *cards], spacing=10, run_spacing=10)
 
     # ── Filter Tabs (scrollable on mobile) ────────────
     @staticmethod
-    def create_filter_buttons(on_filter_changed):
+    def create_filter_buttons(on_filter_changed, include_all=False, default_filter="Pending", is_dark=False):
+        from app.theme import DARK, LIGHT as _LIGHT
+        _col = DARK if is_dark else _LIGHT
+        _NAVY = _col["NAVY"]; _NAVY_MUTED = _col["NAVY_MUTED"]
+        _WHITE = _col["WHITE"]; _BORDER = _col["BORDER"]
         filter_button_refs = {}
 
         def make_filter(label, filter_key, active=False):
@@ -338,12 +499,16 @@ class DashboardUI:
             filter_button_refs[filter_key] = {"btn": btn, "text": text}
             return btn
 
-        btns = [
-            make_filter("Pending", "Pending", active=True),
-            make_filter("Ongoing", "In Progress"),
-            make_filter("Resolved", "Resolved"),
-            make_filter("Rejected", "Rejected"),
-        ]
+        btns = []
+        if include_all:
+            btns.append(make_filter("All", "All", active=default_filter == "All"))
+
+        btns.extend([
+            make_filter("Pending", "Pending", active=default_filter == "Pending"),
+            make_filter("Ongoing", "In Progress", active=default_filter == "In Progress"),
+            make_filter("Resolved", "Resolved", active=default_filter == "Resolved"),
+            make_filter("Rejected", "Rejected", active=default_filter == "Rejected"),
+        ])
 
         return ft.Container(
             content=ft.Row(btns, spacing=6, scroll=ft.ScrollMode.AUTO, tight=True),
@@ -352,6 +517,9 @@ class DashboardUI:
     # ── Empty State ──────────────────────────────────
     @staticmethod
     def create_empty_state(first_name, is_dark, on_report_click):
+        from app.theme import DARK, LIGHT as _LIGHT
+        _col = DARK if is_dark else _LIGHT
+        _NAVY = _col["NAVY"]; _NAVY_MUTED = _col["NAVY_MUTED"]; _BORDER_LIGHT = _col["BORDER_LIGHT"]
         return ft.Container(
             content=ft.Column(
                 [
@@ -382,7 +550,10 @@ class DashboardUI:
 
     # ── No Filtered Reports ──────────────────────────
     @staticmethod
-    def create_no_reports_message():
+    def create_no_reports_message(is_dark=False):
+        from app.theme import DARK, LIGHT as _LIGHT
+        _col = DARK if is_dark else _LIGHT
+        _NAVY = _col["NAVY"]; _NAVY_MUTED = _col["NAVY_MUTED"]
         return ft.Container(
             content=ft.Column(
                 [
@@ -400,9 +571,12 @@ class DashboardUI:
 
     # ── FAB (kept for mobile only) ───────────────────
     @staticmethod
-    def create_fab(on_click):
+    def create_fab(on_click, is_dark=False):
+        from app.theme import DARK, LIGHT as _LIGHT
+        _col = DARK if is_dark else _LIGHT
+        _WHITE = _col["WHITE"]; _ACCENT = _col["ACCENT"]
         return ft.FloatingActionButton(
-            content=ft.Icon(ft.Icons.ADD_ROUNDED, color=_WHITE, size=24),
+            content=ft.Icon(ft.Icons.ADD_ROUNDED, color="#FFFFFF", size=24),
             on_click=on_click,
             bgcolor=_ACCENT,
             shape=ft.RoundedRectangleBorder(radius=16),
@@ -411,4 +585,4 @@ class DashboardUI:
     # Legacy header kept for compatibility with other pages
     @staticmethod
     def create_header(first_name, user_type, is_dark, on_menu_click):
-        return DashboardUI.create_top_bar(first_name, user_type, lambda e: None, on_menu_click, is_mobile=False)
+        return DashboardUI.create_top_bar(first_name, user_type, lambda e: None, on_menu_click, is_mobile=False, is_dark=is_dark)

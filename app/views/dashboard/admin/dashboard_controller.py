@@ -33,24 +33,27 @@ class DashboardController:
         admin_category_reports(self.page, self.user_data, category=category_name, status=status_filter)
     
     def update_stats_and_tabs(self, reports, counts):
+        is_dark = self.page.session.get("is_dark_theme") or False
         self.state.stats_row.controls.clear()
         self.state.stats_row.controls.extend([
             self.ui_components.create_stat_card("Pending", counts.get("pending", 0),
-                                                 ft.Icons.SCHEDULE_OUTLINED, "#B45309", "#FEF3C7"),
+                                                 ft.Icons.SCHEDULE_OUTLINED, "#B45309", "#FEF3C7", is_dark=is_dark),
             self.ui_components.create_stat_card("In Progress", counts.get("in progress", 0),
-                                                 ft.Icons.AUTORENEW_ROUNDED, "#1565C0", "#DBEAFE"),
+                                                 ft.Icons.AUTORENEW_ROUNDED, "#1565C0", "#DBEAFE", is_dark=is_dark),
             self.ui_components.create_stat_card("Resolved", counts.get("resolved", 0),
-                                                 ft.Icons.CHECK_CIRCLE_OUTLINE, "#15803D", "#DCFCE7"),
+                                                 ft.Icons.CHECK_CIRCLE_OUTLINE, "#15803D", "#DCFCE7", is_dark=is_dark),
             self.ui_components.create_stat_card("Rejected", counts.get("rejected", 0),
-                                                 ft.Icons.CANCEL_OUTLINED, "#DC2626", "#FEE2E2"),
+                                                 ft.Icons.CANCEL_OUTLINED, "#DC2626", "#FEE2E2", is_dark=is_dark),
         ])
     
     def update_category_filter_buttons(self, reports, counts):
         self.state.category_filter_buttons.controls.clear()
+        is_dark = self.page.session.get("is_dark_theme") or False
         
         all_button = ft.TextButton(
             content=self.ui_components.create_tab_button(
-                "All", len(reports), self.state.category_status_filter == "All"
+                "All", len(reports), self.state.category_status_filter == "All",
+                is_dark=is_dark,
             ),
             on_click=lambda e: self.handle_category_filter_click("All")
         )
@@ -68,7 +71,8 @@ class DashboardController:
             status_count = counts.get(count_key, 0)
             btn = ft.TextButton(
                 content=self.ui_components.create_tab_button(
-                    label, status_count, self.state.category_status_filter == label
+                    label, status_count, self.state.category_status_filter == label,
+                    is_dark=is_dark,
                 ),
                 on_click=lambda e, s=label: self.handle_category_filter_click(s)
             )
@@ -95,7 +99,8 @@ class DashboardController:
                 category_name, 
                 count,
                 lambda e, cat=category_name, status=self.state.category_status_filter: 
-                    self.handle_category_click(cat, status)
+                    self.handle_category_click(cat, status),
+                is_dark=self.page.session.get("is_dark_theme") or False,
             )
             self.state.category_list_view.controls.append(item)
     

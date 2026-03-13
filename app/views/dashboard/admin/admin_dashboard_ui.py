@@ -32,7 +32,14 @@ class UIComponents:
 
     # ── Stat card (clean tile) ──
     @staticmethod
-    def create_stat_card(label, count, icon, accent, bg_tint):
+    def create_stat_card(label, count, icon, accent, bg_tint, is_dark=False):
+        from app.theme import DARK, LIGHT
+        colors = DARK if is_dark else LIGHT
+        navy = colors["NAVY"]
+        navy_muted = colors["NAVY_MUTED"]
+        card = colors["CARD"]
+        border = colors["BORDER"]
+
         tile = ft.Container(
             content=ft.Column(
                 [
@@ -49,35 +56,42 @@ class UIComponents:
                         vertical_alignment=ft.CrossAxisAlignment.CENTER,
                     ),
                     ft.Container(height=8),
-                    ft.Text(str(count), size=26, font_family="Poppins-Bold", color=_NAVY),
-                    ft.Text(label, size=11, font_family="Poppins-Medium", color=_NAVY_MUTED,
+                        ft.Text(str(count), size=26, font_family="Poppins-Bold", color=navy),
+                        ft.Text(label, size=11, font_family="Poppins-Medium", color=navy_muted,
                             max_lines=1, overflow=ft.TextOverflow.ELLIPSIS),
                 ],
                 spacing=0,
             ),
             padding=ft.padding.all(16),
-            bgcolor=_CARD,
+                    bgcolor=card,
             border_radius=14,
-            border=ft.border.all(1, _BORDER),
+                    border=ft.border.all(1, border),
         )
         tile.col = {"xs": 6, "sm": 6, "md": 6, "lg": 3}
         return tile
 
     # ── Filter tab button ──
     @staticmethod
-    def create_tab_button(label, count, active):
+    def create_tab_button(label, count, active, is_dark=False):
+        from app.theme import DARK, LIGHT
+        _c = DARK if is_dark else LIGHT
+        _NAVY = _c["NAVY"]; _NAVY_MUTED = _c["NAVY_MUTED"]
+        _ACCENT = _c["ACCENT"]; _BORDER = _c["BORDER"]
+        # In dark mode _NAVY is the light-text value (#F1F5F9) — not suitable as
+        # a button background. Use ACCENT (#3B82F6) for the active state instead.
+        active_bg = _ACCENT if is_dark else _NAVY
         text = ft.Text(
             f"{label} ({count})", size=11, weight=ft.FontWeight.W_600,
-            color=_WHITE if active else _NAVY_MUTED,
+            color="#FFFFFF" if active else _NAVY_MUTED,
             font_family="Poppins-Medium",
         )
         return ft.Container(
             content=text,
-            bgcolor=_NAVY if active else ft.Colors.TRANSPARENT,
+            bgcolor=active_bg if active else ft.Colors.TRANSPARENT,
             padding=ft.padding.symmetric(horizontal=14, vertical=8),
             border_radius=8,
             alignment=ft.alignment.center,
-            border=ft.border.all(1, _NAVY if active else _BORDER),
+            border=ft.border.all(1, active_bg if active else _BORDER),
         )
 
     # ── Status update dialog ──
@@ -90,6 +104,15 @@ class UIComponents:
             report: report dict
             on_confirm: callback(report_id, new_status, remarks)
         """
+        from app.theme import DARK, LIGHT
+        _c = DARK if (page.session.get("is_dark_theme") or False) else LIGHT
+        _NAVY = _c["NAVY"]; _NAVY_MUTED = _c["NAVY_MUTED"]
+        _ACCENT = _c["ACCENT"]; _CARD = _c["CARD"]
+        _BORDER = _c["BORDER"]; _BORDER_LIGHT = _c["BORDER_LIGHT"]
+        _PENDING_TEXT = _c["PENDING_TEXT"]; _PENDING_BG = _c["PENDING_BG"]
+        _ONGOING_TEXT = _c["ONGOING_TEXT"]; _ONGOING_BG = _c["ONGOING_BG"]
+        _RESOLVED_TEXT = _c["RESOLVED_TEXT"]; _RESOLVED_BG = _c["RESOLVED_BG"]
+        _REJECTED_TEXT = _c["REJECTED_TEXT"]; _REJECTED_BG = _c["REJECTED_BG"]
         current_status = (report.get("status") or "Pending")
         status_options = ["Pending", "In Progress", "Resolved", "Rejected"]
 
@@ -120,7 +143,7 @@ class UIComponents:
             value=report.get("admin_remarks") or "",
             multiline=True, min_lines=2, max_lines=5,
             border_color=_BORDER, focused_border_color=_ACCENT,
-            border_radius=10, text_size=13, bgcolor=_WHITE, color=_NAVY,
+            border_radius=10, text_size=13, bgcolor=_CARD, color=_NAVY,
             prefix_icon=ft.Icons.NOTES_ROUNDED,
             hint_text="Add a note about this status change…",
             hint_style=ft.TextStyle(size=12, color=_NAVY_MUTED),
@@ -171,7 +194,7 @@ class UIComponents:
                 padding=ft.padding.symmetric(horizontal=12, vertical=10),
                 border_radius=10,
                 border=ft.border.all(1.5, clr if is_sel else _BORDER),
-                bgcolor=bg if is_sel else _WHITE,
+                bgcolor=bg if is_sel else _CARD,
                 on_click=lambda e, st=s: select_status(st),
                 ink=True,
                 animate=ft.Animation(200, ft.AnimationCurve.EASE_IN_OUT),
@@ -187,7 +210,7 @@ class UIComponents:
                 clr = status_colors[s_key]
                 bg = status_bgs[s_key]
                 cont.border = ft.border.all(1.5, clr if is_sel else _BORDER)
-                cont.bgcolor = bg if is_sel else _WHITE
+                cont.bgcolor = bg if is_sel else _CARD
                 # Update the radio icon and text
                 row = cont.content
                 row.controls[-1].content = ft.Icon(
@@ -270,7 +293,7 @@ class UIComponents:
             title=ft.Row(
                 [
                     ft.Container(
-                        content=ft.Icon(ft.Icons.EDIT_NOTE_ROUNDED, size=20, color=_WHITE),
+                        content=ft.Icon(ft.Icons.EDIT_NOTE_ROUNDED, size=20, color="#FFFFFF"),
                         width=34, height=34, border_radius=10,
                         bgcolor=_ACCENT, alignment=ft.alignment.center,
                     ),
@@ -310,9 +333,9 @@ class UIComponents:
                 ft.ElevatedButton(
                     content=ft.Row(
                         [
-                            ft.Icon(ft.Icons.CHECK_ROUNDED, size=16, color=_WHITE),
+                            ft.Icon(ft.Icons.CHECK_ROUNDED, size=16, color="#FFFFFF"),
                             ft.Text("Confirm", size=13, font_family="Poppins-SemiBold",
-                                    color=_WHITE),
+                                    color="#FFFFFF"),
                         ],
                         spacing=6, tight=True,
                     ),
@@ -326,7 +349,96 @@ class UIComponents:
             ],
             actions_alignment=ft.MainAxisAlignment.END,
             shape=ft.RoundedRectangleBorder(radius=16),
-            bgcolor=_WHITE,
+            bgcolor=_CARD,
+        )
+
+        page.overlay.append(dialog)
+        dialog.open = True
+        page.update()
+
+    # ── Delete confirmation dialog ──
+    @staticmethod
+    def open_delete_dialog(page, report, on_confirm):
+        from app.theme import DARK, LIGHT
+        _c = DARK if (page.session.get("is_dark_theme") or False) else LIGHT
+        _NAVY = _c["NAVY"]; _NAVY_MUTED = _c["NAVY_MUTED"]
+        _CARD = _c["CARD"]; _REJECTED_TEXT = _c["REJECTED_TEXT"]
+        report_id = report.get("id")
+        location = report.get("location") or "Unknown location"
+
+        def on_cancel(e):
+            dialog.open = False
+            page.update()
+
+        def on_delete(e):
+            dialog.open = False
+            page.update()
+            on_confirm(report_id)
+
+        dialog = ft.AlertDialog(
+            modal=True,
+            title=ft.Row(
+                [
+                    ft.Container(
+                        content=ft.Icon(ft.Icons.WARNING_AMBER_ROUNDED, size=20, color="#FFFFFF"),
+                        width=34,
+                        height=34,
+                        border_radius=10,
+                        bgcolor=_REJECTED_TEXT,
+                        alignment=ft.alignment.center,
+                    ),
+                    ft.Text("Delete Report", size=16, font_family="Poppins-Bold", color=_NAVY),
+                ],
+                spacing=10,
+                vertical_alignment=ft.CrossAxisAlignment.CENTER,
+            ),
+            content=ft.Container(
+                content=ft.Column(
+                    [
+                        ft.Text(
+                            "This action will permanently remove the report.",
+                            size=12,
+                            font_family="Poppins-Medium",
+                            color=_NAVY,
+                        ),
+                        ft.Container(height=6),
+                        ft.Text(
+                            f"Report #{report_id} at {location}",
+                            size=11,
+                            font_family="Poppins-Light",
+                            color=_NAVY_MUTED,
+                            italic=True,
+                        ),
+                    ],
+                    spacing=0,
+                ),
+                width=360,
+            ),
+            actions=[
+                ft.TextButton(
+                    content=ft.Text("Cancel", size=13, font_family="Poppins-Medium", color=_NAVY_MUTED),
+                    on_click=on_cancel,
+                ),
+                ft.ElevatedButton(
+                    content=ft.Row(
+                        [
+                            ft.Icon(ft.Icons.DELETE_OUTLINE_ROUNDED, size=16, color="#FFFFFF"),
+                            ft.Text("Delete", size=13, font_family="Poppins-SemiBold", color="#FFFFFF"),
+                        ],
+                        spacing=6,
+                        tight=True,
+                    ),
+                    bgcolor=_REJECTED_TEXT,
+                    on_click=on_delete,
+                    style=ft.ButtonStyle(
+                        shape=ft.RoundedRectangleBorder(radius=10),
+                        padding=ft.padding.symmetric(horizontal=18, vertical=10),
+                    ),
+                ),
+            ],
+            actions_alignment=ft.MainAxisAlignment.END,
+            shape=ft.RoundedRectangleBorder(radius=16),
+            bgcolor=_CARD,
         )
 
         page.overlay.append(dialog)
@@ -335,17 +447,31 @@ class UIComponents:
 
     # ── Report card (upgraded with remarks + update button) ──
     @staticmethod
-    def create_report_card(report, on_status_change, page=None):
+    def create_report_card(report, on_status_change, page=None, on_delete=None, is_dark=False):
+        from app.theme import DARK, LIGHT
+        _is_dark = (page.session.get("is_dark_theme") or False) if page else is_dark
+        _c = DARK if _is_dark else LIGHT
+        _NAVY = _c["NAVY"]; _NAVY_MUTED = _c["NAVY_MUTED"]
+        _ACCENT = _c["ACCENT"]; _CARD = _c["CARD"]
+        _BORDER = _c["BORDER"]; _BORDER_LIGHT = _c["BORDER_LIGHT"]
+        _REJECTED_TEXT = _c["REJECTED_TEXT"]
+        status_map = {
+            "pending":     (_c["PENDING_TEXT"],  _c["PENDING_BG"]),
+            "in progress": (_c["ONGOING_TEXT"],  _c["ONGOING_BG"]),
+            "resolved":    (_c["RESOLVED_TEXT"], _c["RESOLVED_BG"]),
+            "rejected":    (_c["REJECTED_TEXT"], _c["REJECTED_BG"]),
+        }
         desc = (report.get("issue_description") or "").strip()
         if len(desc) > 120:
             desc = desc[:120] + "..."
 
         status_raw = (report.get("status") or "pending").strip().lower()
-        status_text, status_bg = _STATUS_MAP.get(status_raw, (_NAVY_MUTED, _BORDER_LIGHT))
+        status_text, status_bg = status_map.get(status_raw, (_NAVY_MUTED, _BORDER_LIGHT))
         category = report.get("category", "Uncategorized")
         remarks = report.get("admin_remarks")
         updated_at = report.get("status_updated_at")
         updated_by = report.get("status_updated_by")
+        report_image = report.get("report_image")
 
         # ── Remarks display ──
         remarks_section = ft.Container()
@@ -396,9 +522,9 @@ class UIComponents:
         update_button = ft.Container(
             content=ft.Row(
                 [
-                    ft.Icon(ft.Icons.EDIT_NOTE_ROUNDED, size=14, color=_WHITE),
+                    ft.Icon(ft.Icons.EDIT_NOTE_ROUNDED, size=14, color="#FFFFFF"),
                     ft.Text("Update Status", size=11, font_family="Poppins-SemiBold",
-                            color=_WHITE),
+                            color="#FFFFFF"),
                 ],
                 spacing=6, tight=True,
                 alignment=ft.MainAxisAlignment.CENTER,
@@ -408,6 +534,29 @@ class UIComponents:
             border_radius=8,
             on_click=on_update_click,
             ink=True,
+        )
+
+        def on_delete_click(e):
+            if page and on_delete:
+                UIComponents.open_delete_dialog(page, report, on_delete)
+
+        delete_button = ft.Container(
+            content=ft.Row(
+                [
+                    ft.Icon(ft.Icons.DELETE_OUTLINE_ROUNDED, size=14, color=_REJECTED_TEXT),
+                    ft.Text("Delete", size=11, font_family="Poppins-SemiBold", color=_REJECTED_TEXT),
+                ],
+                spacing=6,
+                tight=True,
+                alignment=ft.MainAxisAlignment.CENTER,
+            ),
+            bgcolor=ft.Colors.with_opacity(0.08, _REJECTED_TEXT),
+            padding=ft.padding.symmetric(horizontal=14, vertical=8),
+            border_radius=8,
+            border=ft.border.all(1, ft.Colors.with_opacity(0.25, _REJECTED_TEXT)),
+            on_click=on_delete_click if on_delete else None,
+            ink=True,
+            visible=on_delete is not None,
         )
 
         card_children = [
@@ -446,6 +595,36 @@ class UIComponents:
                 ],
                 spacing=6,
             ),
+        ]
+
+        if report_image:
+            image_control = None
+            if isinstance(report_image, str) and report_image.startswith("data:image") and "," in report_image:
+                image_control = ft.Image(
+                    src_base64=report_image.split(",", 1)[1],
+                    fit=ft.ImageFit.COVER,
+                )
+            elif isinstance(report_image, str) and report_image.startswith(("http://", "https://")):
+                image_control = ft.Image(
+                    src=report_image,
+                    fit=ft.ImageFit.COVER,
+                )
+
+            if image_control:
+                card_children.extend([
+                    ft.Container(height=2),
+                    ft.Text("Attached Photo", size=11, font_family="Poppins-SemiBold", color=_NAVY),
+                    ft.Container(
+                        content=image_control,
+                        width=220,
+                        height=130,
+                        border_radius=10,
+                        clip_behavior=ft.ClipBehavior.ANTI_ALIAS,
+                        border=ft.border.all(1, _BORDER),
+                    ),
+                ])
+
+        card_children.extend([
             # Status + category badges
             ft.Row(
                 [
@@ -466,7 +645,7 @@ class UIComponents:
                 ],
                 spacing=8,
             ),
-        ]
+        ])
 
         # Add remarks if present
         if remarks:
@@ -476,9 +655,9 @@ class UIComponents:
         if updated_at:
             card_children.append(update_info)
 
-        # Action row: update button
+        # Action row: update + delete buttons
         card_children.append(
-            ft.Row([update_button], alignment=ft.MainAxisAlignment.END),
+            ft.Row([delete_button, update_button], alignment=ft.MainAxisAlignment.END, spacing=8),
         )
 
         return ft.Container(
@@ -496,7 +675,10 @@ class UIComponents:
 
     # ── Empty state ──
     @staticmethod
-    def create_empty_state(status_filter=""):
+    def create_empty_state(status_filter="", is_dark=False):
+        from app.theme import DARK, LIGHT
+        _c = DARK if is_dark else LIGHT
+        _NAVY = _c["NAVY"]; _NAVY_MUTED = _c["NAVY_MUTED"]; _BORDER_LIGHT = _c["BORDER_LIGHT"]
         return ft.Container(
             content=ft.Column(
                 [
@@ -523,7 +705,11 @@ class UIComponents:
 
     # ── Category list item ──
     @staticmethod
-    def create_category_list_item(category_name, count, on_click):
+    def create_category_list_item(category_name, count, on_click, is_dark=False):
+        from app.theme import DARK, LIGHT
+        _c = DARK if is_dark else LIGHT
+        _NAVY = _c["NAVY"]; _NAVY_MUTED = _c["NAVY_MUTED"]
+        _ACCENT = _c["ACCENT"]; _CARD = _c["CARD"]; _BORDER = _c["BORDER"]
         return ft.Container(
             content=ft.Row(
                 [
@@ -536,7 +722,7 @@ class UIComponents:
                     ft.Text(category_name, size=14, font_family="Poppins-Medium",
                             color=_NAVY, expand=True),
                     ft.Container(
-                        content=ft.Text(str(count), size=12, font_family="Poppins-SemiBold", color=_WHITE),
+                        content=ft.Text(str(count), size=12, font_family="Poppins-SemiBold", color="#FFFFFF"),
                         bgcolor=_ACCENT,
                         padding=ft.padding.symmetric(horizontal=10, vertical=4),
                         border_radius=14,
@@ -557,7 +743,10 @@ class UIComponents:
 
     # ── Empty category message ──
     @staticmethod
-    def create_empty_category_message(category_name=None):
+    def create_empty_category_message(category_name=None, is_dark=False):
+        from app.theme import DARK, LIGHT
+        _c = DARK if is_dark else LIGHT
+        _NAVY = _c["NAVY"]; _NAVY_MUTED = _c["NAVY_MUTED"]; _BORDER_LIGHT = _c["BORDER_LIGHT"]
         return ft.Container(
             content=ft.Column(
                 [

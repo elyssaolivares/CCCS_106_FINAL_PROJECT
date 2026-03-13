@@ -39,6 +39,15 @@ class Database:
             cursor.execute('ALTER TABLE reports ADD COLUMN status_updated_at TIMESTAMP')
         if 'status_updated_by' not in columns:
             cursor.execute('ALTER TABLE reports ADD COLUMN status_updated_by TEXT')
+        if 'report_image' not in columns:
+            cursor.execute('ALTER TABLE reports ADD COLUMN report_image TEXT')
+
+        # Older rows may have NULL timestamps after migrations; keep analytics usable.
+        cursor.execute('''
+            UPDATE reports
+            SET created_at = COALESCE(created_at, status_updated_at, CURRENT_TIMESTAMP)
+            WHERE created_at IS NULL
+        ''')
         
         cursor.execute('''
             CREATE TABLE IF NOT EXISTS users (
@@ -57,14 +66,17 @@ class Database:
         conn.close()
 
     
-    def add_report(self, user_email, user_name, user_type, issue_description, location, category="Uncategorized"):
+    def add_report(self, user_email, user_name, user_type, issue_description, location, category="Uncategorized", report_image=None):
         conn = self.get_connection()
         cursor = conn.cursor()
         
         cursor.execute('''
-            INSERT INTO reports (user_email, user_name, user_type, issue_description, location, category, status)
-            VALUES (?, ?, ?, ?, ?, ?, ?)
-        ''', (user_email, user_name, user_type, issue_description, location, category, 'pending'))
+            INSERT INTO reports (
+                user_email, user_name, user_type, issue_description, location,
+                category, status, report_image, created_at
+            )
+            VALUES (?, ?, ?, ?, ?, ?, ?, ?, CURRENT_TIMESTAMP)
+        ''', (user_email, user_name, user_type, issue_description, location, category, 'pending', report_image))
         
         conn.commit()
         report_id = cursor.lastrowid
@@ -95,15 +107,16 @@ class Database:
             'user_type': row[3],
             'issue_description': row[4],
             'location': row[5],
-            'category': row[6],
-            'status': self._canon(row[7]),
-            'admin_remarks': row[8] if len(row) > 8 else None,
-            'status_updated_at': row[9] if len(row) > 9 else None,
-            'status_updated_by': row[10] if len(row) > 10 else None,
+            'report_image': row[6] if len(row) > 6 else None,
+            'category': row[7] if len(row) > 7 else 'Uncategorized',
+            'status': self._canon(row[8] if len(row) > 8 else 'pending'),
+            'admin_remarks': row[9] if len(row) > 9 else None,
+            'status_updated_at': row[10] if len(row) > 10 else None,
+            'status_updated_by': row[11] if len(row) > 11 else None,
         }
 
     _REPORT_COLS = '''id, user_email, user_name, user_type, issue_description,
-                      location, category, status, admin_remarks,
+                      location, report_image, category, status, admin_remarks,
                       status_updated_at, status_updated_by'''
 
     def get_all_reports(self):
@@ -411,13 +424,15 @@ class Database:
         """Get report counts per day for the last N days."""
         conn = self.get_connection()
         cursor = conn.cursor()
+        # Include today in a true N-day window (e.g., 7 days => today + previous 6 days).
+        window_days = max(int(days) - 1, 0)
         cursor.execute('''
-            SELECT DATE(created_at) as day, COUNT(*) as cnt
+            SELECT DATE(COALESCE(created_at, status_updated_at)) as day, COUNT(*) as cnt
             FROM reports
-            WHERE created_at >= DATE('now', ?)
-            GROUP BY DATE(created_at)
+            WHERE DATE(COALESCE(created_at, status_updated_at)) >= DATE('now', ?)
+            GROUP BY DATE(COALESCE(created_at, status_updated_at))
             ORDER BY day ASC
-        ''', (f'-{days} days',))
+        ''', (f'-{window_days} days',))
         rows = cursor.fetchall()
         conn.close()
         return [{'day': r[0], 'count': r[1]} for r in rows if r[0]]

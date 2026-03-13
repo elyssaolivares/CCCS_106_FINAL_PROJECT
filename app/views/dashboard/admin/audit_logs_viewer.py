@@ -55,7 +55,13 @@ def audit_logs_page(page: ft.Page, user_data=None):
     
     is_dark = page.session.get("is_dark_theme") or False
     is_mobile = not (page.width and page.width >= _SIDEBAR_BREAKPOINT)
-    
+    # Resolve palette from theme
+    from app.theme import get_colors as _get_theme
+    _t = _get_theme(page)
+    _BG = _t["BG"]; _NAVY = _t["NAVY"]; _NAVY_MUTED = _t["NAVY_MUTED"]
+    _ACCENT = _t["ACCENT"]; _WHITE = _t["WHITE"]
+    _BORDER = _t["BORDER"]; _BORDER_LIGHT = _t["BORDER_LIGHT"]
+
     from app.views.dashboard.session_manager import SessionManager
     from app.views.dashboard.navigation_drawer import NavigationDrawerComponent
     
@@ -67,7 +73,7 @@ def audit_logs_page(page: ft.Page, user_data=None):
     drawer = nav_drawer.create_drawer(is_dark)
 
     # ── Admin sidebar ──
-    sidebar, _ = create_admin_sidebar(page, user_data, active_key="audit")
+    sidebar, _ = create_admin_sidebar(page, user_data, active_key="audit", on_toggle_theme=toggle_dark_theme)
     sidebar_wrapper = ft.Container(content=sidebar, visible=not is_mobile)
 
     def go_back(e=None):
@@ -120,8 +126,11 @@ def audit_logs_page(page: ft.Page, user_data=None):
     filter_actor_email = ft.TextField(
         label="Actor Email",
         width=200,
-        border_color="#0F2B5B",
-        focused_border_color="#1565C0",
+        border_color=_BORDER,
+        focused_border_color=_ACCENT,
+        color=_NAVY,
+        label_style=ft.TextStyle(color=_NAVY_MUTED),
+        bgcolor=_t["CARD"],
     )
     
     filter_action = ft.Dropdown(
@@ -136,7 +145,11 @@ def audit_logs_page(page: ft.Page, user_data=None):
             ft.dropdown.Option("user_edit"),
             ft.dropdown.Option("password_change"),
         ],
-        border_color="#0F2B5B",
+        border_color=_BORDER,
+        focused_border_color=_ACCENT,
+        color=_NAVY,
+        label_style=ft.TextStyle(color=_NAVY_MUTED),
+        bgcolor=_t["CARD"],
     )
     
     filter_status = ft.Dropdown(
@@ -146,23 +159,35 @@ def audit_logs_page(page: ft.Page, user_data=None):
             ft.dropdown.Option("success"),
             ft.dropdown.Option("failed"),
         ],
-        border_color="#0F2B5B",
+        border_color=_BORDER,
+        focused_border_color=_ACCENT,
+        color=_NAVY,
+        label_style=ft.TextStyle(color=_NAVY_MUTED),
+        bgcolor=_t["CARD"],
     )
     
     start_date_field = ft.TextField(
         label="Start Date (YYYY-MM-DD)",
         width=200,
-        border_color="#0F2B5B",
-        focused_border_color="#1565C0",
+        border_color=_BORDER,
+        focused_border_color=_ACCENT,
         hint_text="2025-01-01",
+        color=_NAVY,
+        label_style=ft.TextStyle(color=_NAVY_MUTED),
+        hint_style=ft.TextStyle(color=_NAVY_MUTED),
+        bgcolor=_t["CARD"],
     )
     
     end_date_field = ft.TextField(
         label="End Date (YYYY-MM-DD)",
         width=200,
-        border_color="#0F2B5B",
-        focused_border_color="#1565C0",
+        border_color=_BORDER,
+        focused_border_color=_ACCENT,
         hint_text="2025-12-31",
+        color=_NAVY,
+        label_style=ft.TextStyle(color=_NAVY_MUTED),
+        hint_style=ft.TextStyle(color=_NAVY_MUTED),
+        bgcolor=_t["CARD"],
     )
 
     logs_list = ft.Column(spacing=8, scroll=ft.ScrollMode.AUTO, expand=True)
@@ -214,7 +239,7 @@ def audit_logs_page(page: ft.Page, user_data=None):
         if not logs:
             logs_list.controls.append(
                 ft.Container(
-                    content=ft.Text("No audit logs found", color=ft.Colors.GREY),
+                    content=ft.Text("No audit logs found", color=_NAVY_MUTED),
                     padding=10,
                 )
             )
@@ -228,29 +253,41 @@ def audit_logs_page(page: ft.Page, user_data=None):
                                 [
                                     ft.Column(
                                         [
-                                            ft.Text(f"Actor: {log['actor_name'] or log['actor_email']}", weight="bold"),
-                                            ft.Text(f"Email: {log['actor_email']}", size=12, color=ft.Colors.GREY),
+                                            ft.Text(
+                                                f"Actor: {log['actor_name'] or log['actor_email']}",
+                                                weight="bold", color=_NAVY,
+                                            ),
+                                            ft.Text(
+                                                f"Email: {log['actor_email']}",
+                                                size=12, color=_NAVY_MUTED,
+                                            ),
                                         ],
                                         spacing=2,
                                     ),
                                     ft.Column(
                                         [
-                                            ft.Text(f"Action: {action_desc}", weight="bold", size=13),
-                                            ft.Text(f"Resource: {log['resource_type'] or 'N/A'} (ID: {log['resource_id'] or 'N/A'})", size=12, color=ft.Colors.GREY),
+                                            ft.Text(
+                                                f"Action: {action_desc}",
+                                                weight="bold", size=13, color=_NAVY,
+                                            ),
+                                            ft.Text(
+                                                f"Resource: {log['resource_type'] or 'N/A'} (ID: {log['resource_id'] or 'N/A'})",
+                                                size=12, color=_NAVY_MUTED,
+                                            ),
                                         ],
                                         spacing=2,
                                     ),
                                     ft.Column(
                                         [
-                                            ft.Text(log['timestamp'][:19], size=12),
+                                            ft.Text(log['timestamp'][:19], size=12, color=_NAVY_MUTED),
                                             ft.Container(
                                                 content=ft.Text(
                                                     log['status'].upper(),
                                                     size=11,
-                                                    color=ft.Colors.WHITE,
+                                                    color="#FFFFFF",
                                                 ),
                                                 padding=ft.padding.symmetric(horizontal=8, vertical=2),
-                                                bgcolor=ft.Colors.GREEN if log['status'] == 'success' else ft.Colors.RED,
+                                                bgcolor=_t["GREEN"] if log['status'] == 'success' else _t["RED"],
                                                 border_radius=4,
                                             ),
                                         ],
@@ -261,14 +298,15 @@ def audit_logs_page(page: ft.Page, user_data=None):
                                 alignment=ft.MainAxisAlignment.SPACE_BETWEEN,
                                 expand=True,
                             ),
-                            ft.Divider(height=1, color=ft.Colors.GREY_400),
-                            ft.Text(f"Details: {log['details'] or 'N/A'}", size=11, color=ft.Colors.GREY),
+                            ft.Container(height=1, bgcolor=_BORDER),
+                            ft.Text(f"Details: {log['details'] or 'N/A'}", size=11, color=_NAVY_MUTED),
                         ],
                         spacing=5,
                     ),
                     padding=ft.padding.all(12),
-                    bgcolor=ft.Colors.GREY_800 if is_dark else ft.Colors.GREY_100,
+                    bgcolor=_t["CARD"],
                     border_radius=8,
+                    border=ft.border.all(1, _BORDER),
                 )
                 logs_list.controls.append(log_card)
         
@@ -277,7 +315,7 @@ def audit_logs_page(page: ft.Page, user_data=None):
         pagination_text = ft.Text(
             f"Page {current_page['page'] + 1} of {total_pages} ({total_count} total logs)",
             size=12,
-            color=ft.Colors.GREY,
+            color=_NAVY_MUTED,
         )
         logs_list.controls.append(pagination_text)
         
@@ -333,7 +371,7 @@ def audit_logs_page(page: ft.Page, user_data=None):
     filter_section = ft.Container(
         content=ft.Column(
             [
-                ft.Text("Filters", size=16, font_family="Poppins-SemiBold", color=ft.Colors.WHITE if is_dark else ft.Colors.BLACK),
+                ft.Text("Filters", size=16, font_family="Poppins-SemiBold", color=_NAVY),
                 ft.Row(
                     [filter_actor_email, filter_action, filter_status],
                     spacing=10,
@@ -346,8 +384,11 @@ def audit_logs_page(page: ft.Page, user_data=None):
                 ),
                 ft.Row(
                     [
-                        ft.ElevatedButton("Search", on_click=on_filter_click, bgcolor="#0F2B5B"),
-                        ft.ElevatedButton("Export CSV", on_click=on_export_csv, bgcolor="#4CAF50"),
+                        ft.ElevatedButton(
+                            "Search", on_click=on_filter_click,
+                            bgcolor=_ACCENT, color="#FFFFFF",
+                        ),
+                        ft.ElevatedButton("Export CSV", on_click=on_export_csv, bgcolor="#4CAF50", color="#FFFFFF"),
                     ],
                     spacing=10,
                 ),
@@ -355,8 +396,9 @@ def audit_logs_page(page: ft.Page, user_data=None):
             spacing=10,
         ),
         padding=ft.padding.all(15),
-        bgcolor=ft.Colors.GREY_800 if is_dark else ft.Colors.WHITE,
+        bgcolor=_t["CARD"],
         border_radius=8,
+        border=ft.border.all(1, _BORDER),
         margin=ft.margin.all(10),
     )
     
@@ -415,7 +457,7 @@ def audit_logs_page(page: ft.Page, user_data=None):
 
     # ── Assemble ──
     page.end_drawer = drawer
-    page.theme_mode = ft.ThemeMode.LIGHT
+    page.theme_mode = ft.ThemeMode.DARK if is_dark else ft.ThemeMode.LIGHT
     page.bgcolor = _BG
 
     layout = ft.Row(

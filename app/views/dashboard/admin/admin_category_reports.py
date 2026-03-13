@@ -33,6 +33,12 @@ def admin_category_reports(page: ft.Page, user_data=None, category=None, status=
         return
 
     is_dark = SessionManager.get_theme_preference(page)
+    # Resolve palette from theme
+    from app.theme import get_colors as _get_theme
+    _t = _get_theme(page)
+    _BG = _t["BG"]; _NAVY = _t["NAVY"]; _NAVY_MUTED = _t["NAVY_MUTED"]
+    _ACCENT = _t["ACCENT"]; _WHITE = _t["WHITE"]
+    _BORDER = _t["BORDER"]; _BORDER_LIGHT = _t["BORDER_LIGHT"]
 
     def toggle_dark_theme(e):
         SessionManager.set_theme_preference(page, not is_dark)
@@ -72,7 +78,7 @@ def admin_category_reports(page: ft.Page, user_data=None, category=None, status=
         # "All" button
         all_active = status is None
         all_btn = ft.Container(
-            content=ui_components.create_tab_button("All", len(category_reports), all_active),
+            content=ui_components.create_tab_button("All", len(category_reports), all_active, is_dark=is_dark),
             on_click=lambda e: admin_category_reports(page, user_data, category, None),
         )
         status_filter_buttons.controls.append(all_btn)
@@ -81,7 +87,7 @@ def admin_category_reports(page: ft.Page, user_data=None, category=None, status=
             count = status_counts.get(s_label, 0)
             is_active = status == s_label
             btn = ft.Container(
-                content=ui_components.create_tab_button(s_label, count, is_active),
+                content=ui_components.create_tab_button(s_label, count, is_active, is_dark=is_dark),
                 on_click=lambda e, st=s_label: admin_category_reports(page, user_data, category, st),
             )
             status_filter_buttons.controls.append(btn)
@@ -106,11 +112,52 @@ def admin_category_reports(page: ft.Page, user_data=None, category=None, status=
 
         admin_category_reports(page, user_data, category, status)
 
+    def handle_report_delete(report_id):
+        from app.services.audit.audit_logger import audit_logger
+        admin_email = user_data.get("email", "unknown@example.com") if user_data else "unknown@example.com"
+        admin_name = user_data.get("name", "Unknown Admin") if user_data else "Unknown Admin"
+
+        try:
+            report = db.get_report_by_id(report_id)
+            report_location = (report or {}).get("location", "Unknown location")
+
+            db.delete_report(report_id)
+
+            audit_logger.log_action(
+                actor_email=admin_email,
+                actor_name=admin_name,
+                action_type="report_delete",
+                resource_type="report",
+                resource_id=report_id,
+                details=f"Deleted report at {report_location}",
+                status="success",
+            )
+
+            page.snack_bar = ft.SnackBar(
+                content=ft.Text("Report deleted successfully."),
+                bgcolor=ft.Colors.GREEN_600,
+            )
+            page.snack_bar.open = True
+            page.update()
+            admin_category_reports(page, user_data, category, status)
+        except Exception as ex:
+            page.snack_bar = ft.SnackBar(
+                content=ft.Text(f"Delete failed: {str(ex)}"),
+                bgcolor=ft.Colors.RED_600,
+            )
+            page.snack_bar.open = True
+            page.update()
+
     if not filtered_reports:
-        reports_list.controls.append(ui_components.create_empty_category_message(category))
+        reports_list.controls.append(ui_components.create_empty_category_message(category, is_dark=is_dark))
     else:
         for report in filtered_reports:
-            report_card = ui_components.create_report_card(report, handle_status_change, page=page)
+            report_card = ui_components.create_report_card(
+                report,
+                handle_status_change,
+                page=page,
+                on_delete=handle_report_delete,
+            )
             reports_list.controls.append(report_card)
 
     if category:
@@ -130,7 +177,7 @@ def admin_category_reports(page: ft.Page, user_data=None, category=None, status=
             page.update()
 
     # ── Admin sidebar ──
-    sidebar, _ = create_admin_sidebar(page, user_data, active_key="reports")
+    sidebar, _ = create_admin_sidebar(page, user_data, active_key="reports", on_toggle_theme=toggle_dark_theme)
     sidebar_wrapper = ft.Container(content=sidebar, visible=not is_mobile)
 
     title = category or "Reports"
@@ -209,7 +256,7 @@ def admin_category_reports(page: ft.Page, user_data=None, category=None, status=
 
     # ── Assemble ──
     page.end_drawer = drawer
-    page.theme_mode = ft.ThemeMode.LIGHT
+    page.theme_mode = ft.ThemeMode.DARK if is_dark else ft.ThemeMode.LIGHT
     page.bgcolor = _BG
 
     layout = ft.Row(

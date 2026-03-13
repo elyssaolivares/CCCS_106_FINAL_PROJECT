@@ -3,26 +3,14 @@
 import flet as ft
 from datetime import datetime, timedelta
 
-# ── Palette ──
-_BG = "#F5F7FA"
-_NAVY = "#0F2B5B"
-_NAVY_MUTED = "#64748B"
-_ACCENT = "#1565C0"
-_WHITE = "#FFFFFF"
-_CARD = "#FFFFFF"
-_BORDER = "#E0E6ED"
-_BORDER_LIGHT = "#F1F5F9"
-_GREEN = "#15803D"
-_GREEN_BG = "#DCFCE7"
-_AMBER = "#B45309"
-_AMBER_BG = "#FEF3C7"
-_RED = "#DC2626"
-_RED_BG = "#FEE2E2"
-_BLUE = "#1565C0"
-_BLUE_BG = "#DBEAFE"
-
 _BAR_COLORS = ["#1565C0", "#7C3AED", "#0891B2", "#059669", "#D97706",
                "#DC2626", "#DB2777", "#4F46E5", "#0D9488", "#EA580C"]
+
+
+def _ct(is_dark=False):
+    """Return the theme color dict for analytics widgets."""
+    from app.theme import DARK, LIGHT
+    return DARK if is_dark else LIGHT
 
 
 class AnalyticsUI:
@@ -32,7 +20,9 @@ class AnalyticsUI:
     #  Section header
     # ────────────────────────────────────────────
     @staticmethod
-    def section_header(title, icon=ft.Icons.ANALYTICS_OUTLINED):
+    def section_header(title, icon=ft.Icons.ANALYTICS_OUTLINED, is_dark=False):
+        _t = _ct(is_dark)
+        _NAVY = _t["NAVY"]; _ACCENT = _t["ACCENT"]
         return ft.Row(
             [
                 ft.Container(
@@ -51,7 +41,10 @@ class AnalyticsUI:
     #  Summary stat mini-card  (used in a row)
     # ────────────────────────────────────────────
     @staticmethod
-    def mini_stat(label, value, icon, color, bg):
+    def mini_stat(label, value, icon, color, bg, is_dark=False):
+        _t = _ct(is_dark)
+        _NAVY = _t["NAVY"]; _NAVY_MUTED = _t["NAVY_MUTED"]
+        _CARD = _t["CARD"]; _BORDER = _t["BORDER"]
         return ft.Container(
             content=ft.Row(
                 [
@@ -84,7 +77,7 @@ class AnalyticsUI:
     #  Horizontal bar chart (category / location)
     # ────────────────────────────────────────────
     @staticmethod
-    def horizontal_bar_chart(data, title="", max_bars=6, value_key="count", label_key="category"):
+    def horizontal_bar_chart(data, title="", max_bars=6, value_key="count", label_key="category", is_dark=False):
         """Render a simple horizontal bar chart.
 
         Args:
@@ -92,7 +85,11 @@ class AnalyticsUI:
             title: card title
             max_bars: max bars to show
             value_key / label_key: keys in each dict
+            is_dark: whether dark mode is active
         """
+        _t = _ct(is_dark)
+        _NAVY = _t["NAVY"]; _NAVY_MUTED = _t["NAVY_MUTED"]
+        _CARD = _t["CARD"]; _BORDER = _t["BORDER"]; _BORDER_LIGHT = _t["BORDER_LIGHT"]
         if not data:
             return ft.Container(
                 content=ft.Text("No data available", size=12,
@@ -168,13 +165,17 @@ class AnalyticsUI:
     #  Vertical bar chart (daily trend)
     # ────────────────────────────────────────────
     @staticmethod
-    def daily_trend_chart(per_day_data, days=7):
+    def daily_trend_chart(per_day_data, days=7, is_dark=False):
         """Vertical bar chart showing daily report counts.
 
         Args:
             per_day_data: list of {'day': 'YYYY-MM-DD', 'count': N}
             days: how many days to show (fills missing days with 0)
+            is_dark: whether dark mode is active
         """
+        _t = _ct(is_dark)
+        _NAVY = _t["NAVY"]; _NAVY_MUTED = _t["NAVY_MUTED"]
+        _ACCENT = _t["ACCENT"]; _CARD = _t["CARD"]; _BORDER = _t["BORDER"]
         day_map = {d['day']: d['count'] for d in per_day_data if d.get('day')}
         today = datetime.now().date()
         all_days = []
@@ -238,12 +239,19 @@ class AnalyticsUI:
     #  Resolution rate ring
     # ────────────────────────────────────────────
     @staticmethod
-    def resolution_ring(rate_data):
+    def resolution_ring(rate_data, is_dark=False):
         """Show resolution rate as a styled percentage ring.
 
         Args:
             rate_data: {'total': int, 'resolved': int, 'rate': float}
+            is_dark: whether dark mode is active
         """
+        _t = _ct(is_dark)
+        _NAVY = _t["NAVY"]; _NAVY_MUTED = _t["NAVY_MUTED"]
+        _CARD = _t["CARD"]; _BORDER = _t["BORDER"]; _BORDER_LIGHT = _t["BORDER_LIGHT"]
+        _GREEN = _t["GREEN"]; _GREEN_BG = _t["GREEN_BG"]
+        _AMBER = _t["AMBER"]; _AMBER_BG = _t["AMBER_BG"]
+        _RED = _t["RED"]; _RED_BG = _t["RED_BG"]
         rate = rate_data.get('rate', 0)
         total = rate_data.get('total', 0)
         resolved = rate_data.get('resolved', 0)
@@ -325,12 +333,16 @@ class AnalyticsUI:
     #  Top reporters list
     # ────────────────────────────────────────────
     @staticmethod
-    def top_reporters_card(reporters):
+    def top_reporters_card(reporters, is_dark=False):
         """Show a ranked list of top reporters.
 
         Args:
             reporters: list of {'name': str, 'email': str, 'count': int}
+            is_dark: whether dark mode is active
         """
+        _t = _ct(is_dark)
+        _NAVY = _t["NAVY"]; _NAVY_MUTED = _t["NAVY_MUTED"]
+        _ACCENT = _t["ACCENT"]; _CARD = _t["CARD"]; _BORDER = _t["BORDER"]
         if not reporters:
             return ft.Container(
                 content=ft.Text("No reporters yet", size=12,
@@ -355,7 +367,7 @@ class AnalyticsUI:
                             ft.Container(
                                 content=ft.Text(
                                     (r['name'] or "?")[0].upper(),
-                                    size=10, font_family="Poppins-Bold", color=_WHITE,
+                                    size=10, font_family="Poppins-Bold", color="#FFFFFF",
                                 ),
                                 width=28, height=28, border_radius=14,
                                 bgcolor=_BAR_COLORS[i % len(_BAR_COLORS)],
@@ -374,7 +386,7 @@ class AnalyticsUI:
                             ),
                             ft.Container(
                                 content=ft.Text(str(r['count']), size=11,
-                                                font_family="Poppins-SemiBold", color=_WHITE),
+                                                font_family="Poppins-SemiBold", color="#FFFFFF"),
                                 bgcolor=_ACCENT,
                                 padding=ft.padding.symmetric(horizontal=8, vertical=3),
                                 border_radius=10,
@@ -407,21 +419,25 @@ class AnalyticsUI:
     #  Status distribution (horizontal stacked bar)
     # ────────────────────────────────────────────
     @staticmethod
-    def status_distribution_bar(counts, total):
+    def status_distribution_bar(counts, total, is_dark=False):
         """Single horizontal stacked bar showing status proportions.
 
         Args:
             counts: dict like {'pending': 3, 'in progress': 2, …}
             total: total reports count
+            is_dark: whether dark mode is active
         """
+        _t = _ct(is_dark)
+        _NAVY = _t["NAVY"]; _NAVY_MUTED = _t["NAVY_MUTED"]
+        _CARD = _t["CARD"]; _BORDER = _t["BORDER"]
         if total == 0:
             return ft.Container()
 
         color_map = {
-            'pending': _AMBER,
-            'in progress': _BLUE,
-            'resolved': _GREEN,
-            'rejected': _RED,
+            'pending': _t["AMBER"],
+            'in progress': _t["ONGOING_TEXT"],
+            'resolved': _t["GREEN"],
+            'rejected': _t["RED"],
         }
         label_map = {
             'pending': 'Pending',

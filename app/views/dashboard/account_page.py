@@ -57,6 +57,16 @@ def account_page(page: ft.Page, user_data=None):
 
     is_dark = page.session.get("is_dark_theme") or False
 
+    # Resolve palette from theme
+    from app.theme import get_colors as _get_theme
+    _t = _get_theme(page)
+    _BG = _t["BG"]; _NAVY = _t["NAVY"]; _NAVY_LIGHT = _t["NAVY_LIGHT"]
+    _NAVY_MUTED = _t["NAVY_MUTED"]; _ACCENT = _t["ACCENT"]
+    _WHITE = _t["WHITE"]; _CARD = _t["CARD"]
+    _BORDER = _t["BORDER"]; _BORDER_LIGHT = _t["BORDER_LIGHT"]
+    _GREEN = _t["GREEN"]; _GREEN_BG = _t["GREEN_BG"]
+    _RED = _t["RED"]; _RED_BG = _t["RED_BG"]
+
     edit_mode = {"active": False}
     current_picture = {"path": picture}
 
@@ -570,8 +580,8 @@ def account_page(page: ft.Page, user_data=None):
                     from app.views.dashboard.admin.admin_all_reports import admin_all_reports
                     admin_all_reports(page, user_data)
                 else:
-                    from .report_issue_page import report_issue_page
-                    report_issue_page(page, user_data)
+                    from .user_dashboard import user_dashboard
+                    user_dashboard(page, user_data, active_section="reports")
             elif key == "audit":
                 from app.views.dashboard.admin.audit_logs_viewer import audit_logs_page
                 audit_logs_page(page, user_data)
@@ -701,6 +711,7 @@ def account_page(page: ft.Page, user_data=None):
             on_nav=nav_handler,
             on_logout=on_logout,
             active="account",
+            is_dark=is_dark,
         )
 
     sidebar_wrapper = ft.Container(
@@ -747,7 +758,7 @@ def account_page(page: ft.Page, user_data=None):
     page.on_resized = on_resize
 
     # ── Assemble ──
-    page.theme_mode = ft.ThemeMode.LIGHT
+    page.theme_mode = ft.ThemeMode.DARK if is_dark else ft.ThemeMode.LIGHT
     page.bgcolor = _BG
     page.end_drawer = drawer
 

@@ -31,6 +31,12 @@ def admin_all_categories(page: ft.Page, user_data=None):
         return
 
     is_dark = SessionManager.get_theme_preference(page)
+    # Resolve palette from theme
+    from app.theme import get_colors as _get_theme
+    _t = _get_theme(page)
+    _BG = _t["BG"]; _NAVY = _t["NAVY"]; _NAVY_MUTED = _t["NAVY_MUTED"]
+    _ACCENT = _t["ACCENT"]; _WHITE = _t["WHITE"]
+    _BORDER = _t["BORDER"]; _BORDER_LIGHT = _t["BORDER_LIGHT"]
     current_status_filter = {"status": "All"}
 
     def toggle_dark_theme(e):
@@ -58,13 +64,13 @@ def admin_all_categories(page: ft.Page, user_data=None):
         counts = DataManager.calculate_status_counts(filtered)
         stats_row.controls.extend([
             ui_components.create_stat_card("Pending", counts.get("pending", 0),
-                                            ft.Icons.SCHEDULE_OUTLINED, "#B45309", "#FEF3C7"),
+                                            ft.Icons.SCHEDULE_OUTLINED, "#B45309", "#FEF3C7", is_dark=is_dark),
             ui_components.create_stat_card("In Progress", counts.get("in progress", 0),
-                                            ft.Icons.AUTORENEW_ROUNDED, "#1565C0", "#DBEAFE"),
+                                            ft.Icons.AUTORENEW_ROUNDED, "#1565C0", "#DBEAFE", is_dark=is_dark),
             ui_components.create_stat_card("Resolved", counts.get("resolved", 0),
-                                            ft.Icons.CHECK_CIRCLE_OUTLINE, "#15803D", "#DCFCE7"),
+                                            ft.Icons.CHECK_CIRCLE_OUTLINE, "#15803D", "#DCFCE7", is_dark=is_dark),
             ui_components.create_stat_card("Rejected", counts.get("rejected", 0),
-                                            ft.Icons.CANCEL_OUTLINED, "#DC2626", "#FEE2E2"),
+                                            ft.Icons.CANCEL_OUTLINED, "#DC2626", "#FEE2E2", is_dark=is_dark),
         ])
 
     def update_status_filters():
@@ -82,7 +88,8 @@ def admin_all_categories(page: ft.Page, user_data=None):
         for label, count in status_mapping.items():
             btn = ft.Container(
                 content=ui_components.create_tab_button(
-                    label, count, current_status_filter["status"] == label
+                    label, count, current_status_filter["status"] == label,
+                    is_dark=is_dark,
                 ),
                 on_click=lambda e, s=label: apply_status_filter(s),
             )
@@ -104,13 +111,14 @@ def admin_all_categories(page: ft.Page, user_data=None):
 
         category_counts = DataManager.calculate_category_counts(filtered_reports)
         if not category_counts:
-            category_list_view.controls.append(ui_components.create_empty_category_message())
+            category_list_view.controls.append(ui_components.create_empty_category_message(is_dark=is_dark))
         else:
             sorted_categories = sorted(category_counts.items(), key=lambda x: x[1], reverse=True)
             for category_name, count in sorted_categories:
                 item = ui_components.create_category_list_item(
                     category_name, count,
                     lambda e, cat=category_name: navigate_to_category(cat),
+                    is_dark=is_dark,
                 )
                 category_list_view.controls.append(item)
 
@@ -194,7 +202,7 @@ def admin_all_categories(page: ft.Page, user_data=None):
 
     # ── Assemble ──
     page.end_drawer = drawer
-    page.theme_mode = ft.ThemeMode.LIGHT
+    page.theme_mode = ft.ThemeMode.DARK if is_dark else ft.ThemeMode.LIGHT
     page.bgcolor = _BG
 
     page.add(content_area)

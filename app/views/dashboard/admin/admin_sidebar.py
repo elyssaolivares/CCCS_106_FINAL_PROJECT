@@ -3,15 +3,8 @@
 import flet as ft
 from app.views.dashboard.dashboard_ui import DashboardUI
 
-_NAVY = "#0F2B5B"
-_NAVY_MUTED = "#64748B"
-_ACCENT = "#1565C0"
-_BORDER = "#E0E6ED"
-_BORDER_LIGHT = "#F1F5F9"
-_WHITE = "#FFFFFF"
 
-
-def create_admin_sidebar(page, user_data, active_key="home"):
+def create_admin_sidebar(page, user_data, active_key="home", on_toggle_theme=None):
     """Create the admin sidebar with navigation items.
 
     Args:
@@ -19,6 +12,7 @@ def create_admin_sidebar(page, user_data, active_key="home"):
         user_data: User data dict
         active_key: Which nav item is active
                     ("home", "reports", "audit", "activity", "account")
+        on_toggle_theme: Optional callback to toggle dark/light theme
 
     Returns:
         tuple: (sidebar_container, on_logout_function)
@@ -26,6 +20,14 @@ def create_admin_sidebar(page, user_data, active_key="home"):
     full_name = user_data.get("name", "Admin") if user_data else "Admin"
     picture = user_data.get("picture") if user_data else None
     first_letter = full_name[0].upper() if full_name else "A"
+
+    # Resolve palette from theme
+    from app.theme import get_colors as _get_theme
+    _t = _get_theme(page)
+    _NAVY = _t["NAVY"]; _NAVY_MUTED = _t["NAVY_MUTED"]
+    _ACCENT = _t["ACCENT"]; _WHITE = _t["CARD"]
+    _BORDER = _t["BORDER"]; _BORDER_LIGHT = _t["BORDER_LIGHT"]
+    is_dark = page.session.get("is_dark_theme") or False
 
     def nav_handler(key):
         def handler(e):
@@ -91,7 +93,7 @@ def create_admin_sidebar(page, user_data, active_key="home"):
                     content=ft.Row(
                         [
                             ft.Container(
-                                content=ft.Icon(ft.Icons.ADMIN_PANEL_SETTINGS_OUTLINED, size=20, color=_WHITE),
+                                content=ft.Icon(ft.Icons.ADMIN_PANEL_SETTINGS_OUTLINED, size=20, color="#FFFFFF"),
                                 width=34, height=34, border_radius=10,
                                 bgcolor=_ACCENT, alignment=ft.alignment.center,
                             ),
@@ -109,6 +111,50 @@ def create_admin_sidebar(page, user_data, active_key="home"):
                     padding=ft.padding.symmetric(horizontal=8),
                 ),
                 ft.Container(expand=True),
+                ft.Container(height=1, bgcolor=_BORDER, margin=ft.margin.symmetric(horizontal=12)),
+                ft.Container(height=4),
+                # Theme toggle (desktop)
+                *([ft.Container(
+                    content=ft.TextButton(
+                        content=ft.Row(
+                            [
+                                ft.Container(
+                                    content=ft.Icon(
+                                        ft.Icons.LIGHT_MODE_ROUNDED if is_dark else ft.Icons.DARK_MODE_ROUNDED,
+                                        color=_ACCENT, size=18,
+                                    ),
+                                    width=34, height=34, border_radius=10,
+                                    bgcolor=ft.Colors.with_opacity(0.10, _ACCENT),
+                                    alignment=ft.alignment.center,
+                                ),
+                                ft.Text(
+                                    "Light Mode" if is_dark else "Dark Mode",
+                                    color=_NAVY, size=13, font_family="Poppins-Medium", expand=True,
+                                ),
+                                ft.Container(
+                                    content=ft.Text(
+                                        "ON" if is_dark else "OFF",
+                                        size=9, font_family="Poppins-SemiBold",
+                                        color=_ACCENT if is_dark else _NAVY_MUTED,
+                                    ),
+                                    padding=ft.padding.symmetric(horizontal=6, vertical=3),
+                                    border_radius=6,
+                                    bgcolor=ft.Colors.with_opacity(0.12, _ACCENT) if is_dark else _BORDER_LIGHT,
+                                ),
+                            ],
+                            spacing=10,
+                            vertical_alignment=ft.CrossAxisAlignment.CENTER,
+                        ),
+                        on_click=on_toggle_theme,
+                        style=ft.ButtonStyle(
+                            padding=ft.padding.symmetric(horizontal=10, vertical=10),
+                            shape=ft.RoundedRectangleBorder(radius=10),
+                            overlay_color=ft.Colors.with_opacity(0.06, _ACCENT),
+                        ),
+                    ),
+                    margin=ft.margin.symmetric(horizontal=8),
+                )] if on_toggle_theme else []),
+                ft.Container(height=4),
                 ft.Container(height=1, bgcolor=_BORDER, margin=ft.margin.symmetric(horizontal=12)),
                 ft.Container(height=8),
                 ft.Container(

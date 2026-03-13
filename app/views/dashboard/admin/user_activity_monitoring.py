@@ -36,7 +36,13 @@ def user_activity_monitoring_page(page: ft.Page, user_data=None):
     
     is_dark = page.session.get("is_dark_theme") or False
     is_mobile = not (page.width and page.width >= _SIDEBAR_BREAKPOINT)
-    
+    # Resolve palette from theme
+    from app.theme import get_colors as _get_theme
+    _t = _get_theme(page)
+    _BG = _t["BG"]; _NAVY = _t["NAVY"]; _NAVY_MUTED = _t["NAVY_MUTED"]
+    _ACCENT = _t["ACCENT"]; _WHITE = _t["WHITE"]
+    _BORDER = _t["BORDER"]; _BORDER_LIGHT = _t["BORDER_LIGHT"]
+
     from app.views.dashboard.session_manager import SessionManager
     from app.views.dashboard.navigation_drawer import NavigationDrawerComponent
     
@@ -48,7 +54,7 @@ def user_activity_monitoring_page(page: ft.Page, user_data=None):
     drawer = nav_drawer.create_drawer(is_dark)
 
     # ── Admin sidebar ──
-    sidebar, _ = create_admin_sidebar(page, user_data, active_key="activity")
+    sidebar, _ = create_admin_sidebar(page, user_data, active_key="activity", on_toggle_theme=toggle_dark_theme)
     sidebar_wrapper = ft.Container(content=sidebar, visible=not is_mobile)
 
     def go_back(e=None):
@@ -479,7 +485,7 @@ def user_activity_monitoring_page(page: ft.Page, user_data=None):
 
     # ── Assemble ──
     page.end_drawer = drawer
-    page.theme_mode = ft.ThemeMode.LIGHT
+    page.theme_mode = ft.ThemeMode.DARK if is_dark else ft.ThemeMode.LIGHT
     page.bgcolor = _BG
 
     layout = ft.Row(

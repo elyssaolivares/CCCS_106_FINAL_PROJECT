@@ -26,15 +26,34 @@ def loginpage(page: ft.Page):
     page.end_drawer = None
     page.drawer = None
     page.on_resized = None
+
+    # Resolve palette from theme (login always light unless user had dark pref from prior session)
+    from app.theme import get_colors as _get_theme
+    _t = _get_theme(page)
+    _PRIMARY = _t["NAVY"]; _PRIMARY_LIGHT = _t["ACCENT"]
+    _BG = _t["BG"]; _CARD = _t["WHITE"]
+    _FIELD_BORDER = _t["FIELD_BORDER"]; _FIELD_FOCUS = _t["FIELD_FOCUS"]
+    _TEXT_MUTED = _t["TEXT_MUTED"]; _DIVIDER = _t["DIVIDER"]
+    is_dark = page.session.get("is_dark_theme") or False
+
+    page.theme_mode = ft.ThemeMode.DARK if is_dark else ft.ThemeMode.LIGHT
     page.bgcolor = _BG
     page.update()
 
     # ── Snackbar helper ──
     def show_snackbar(message, bgcolor=ft.Colors.RED_400):
+        display_message = str(message).strip() if message is not None else "Operation completed"
+        if not display_message:
+            display_message = "Operation completed"
+
         snackbar = ft.SnackBar(
-            content=ft.Text(message, color=ft.Colors.WHITE, size=13, font_family="Poppins-Medium"),
+            content=ft.Text(display_message, color=ft.Colors.WHITE, size=13, font_family="Poppins-Medium"),
             bgcolor=bgcolor,
         )
+        if hasattr(page, "show_snack_bar"):
+            page.show_snack_bar(snackbar)
+            return
+
         page.overlay.append(snackbar)
         snackbar.open = True
         page.update()

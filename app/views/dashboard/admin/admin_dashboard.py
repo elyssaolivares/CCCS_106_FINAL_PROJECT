@@ -56,6 +56,15 @@ def admin_dashboard(page: ft.Page, user_data=None):
 
     is_dark = SessionManager.get_theme_preference(page)
 
+    # Resolve palette from theme
+    from app.theme import get_colors as _get_theme
+    _t = _get_theme(page)
+    _BG = _t["BG"]; _NAVY = _t["NAVY"]; _NAVY_MUTED = _t["NAVY_MUTED"]
+    _ACCENT = _t["ACCENT"]; _WHITE = _t["WHITE"]
+    _BORDER = _t["BORDER"]; _BORDER_LIGHT = _t["BORDER_LIGHT"]
+    _GREEN = _t["GREEN"]; _GREEN_BG = _t["GREEN_BG"]
+    _AMBER = _t["AMBER"]; _AMBER_BG = _t["AMBER_BG"]
+
     def toggle_dark_theme(e):
         SessionManager.set_theme_preference(page, not is_dark)
         admin_dashboard(page, user_data)
@@ -162,6 +171,50 @@ def admin_dashboard(page: ft.Page, user_data=None):
                         padding=ft.padding.symmetric(horizontal=8),
                     ),
                     ft.Container(expand=True),
+                    ft.Container(height=1, bgcolor=_BORDER, margin=ft.margin.symmetric(horizontal=12)),
+                    ft.Container(height=4),
+                    # Theme toggle (desktop)
+                    ft.Container(
+                        content=ft.TextButton(
+                            content=ft.Row(
+                                [
+                                    ft.Container(
+                                        content=ft.Icon(
+                                            ft.Icons.LIGHT_MODE_ROUNDED if is_dark else ft.Icons.DARK_MODE_ROUNDED,
+                                            color=_ACCENT, size=18,
+                                        ),
+                                        width=34, height=34, border_radius=10,
+                                        bgcolor=ft.Colors.with_opacity(0.10, _ACCENT),
+                                        alignment=ft.alignment.center,
+                                    ),
+                                    ft.Text(
+                                        "Light Mode" if is_dark else "Dark Mode",
+                                        color=_NAVY, size=13, font_family="Poppins-Medium", expand=True,
+                                    ),
+                                    ft.Container(
+                                        content=ft.Text(
+                                            "ON" if is_dark else "OFF",
+                                            size=9, font_family="Poppins-SemiBold",
+                                            color=_ACCENT if is_dark else _NAVY_MUTED,
+                                        ),
+                                        padding=ft.padding.symmetric(horizontal=6, vertical=3),
+                                        border_radius=6,
+                                        bgcolor=ft.Colors.with_opacity(0.12, _ACCENT) if is_dark else _BORDER_LIGHT,
+                                    ),
+                                ],
+                                spacing=10,
+                                vertical_alignment=ft.CrossAxisAlignment.CENTER,
+                            ),
+                            on_click=toggle_dark_theme,
+                            style=ft.ButtonStyle(
+                                padding=ft.padding.symmetric(horizontal=10, vertical=10),
+                                shape=ft.RoundedRectangleBorder(radius=10),
+                                overlay_color=ft.Colors.with_opacity(0.06, _ACCENT),
+                            ),
+                        ),
+                        margin=ft.margin.symmetric(horizontal=8),
+                    ),
+                    ft.Container(height=4),
                     ft.Container(height=1, bgcolor=_BORDER, margin=ft.margin.symmetric(horizontal=12)),
                     ft.Container(height=8),
                     ft.Container(
@@ -299,18 +352,18 @@ def admin_dashboard(page: ft.Page, user_data=None):
     total_reports = len(all_reports_for_stats)
 
     # ── Analytics widgets ──
-    daily_trend = AnalyticsUI.daily_trend_chart(reports_per_day, days=7)
+    daily_trend = AnalyticsUI.daily_trend_chart(reports_per_day, days=7, is_dark=is_dark)
     category_chart = AnalyticsUI.horizontal_bar_chart(
         reports_per_category, title="Reports by Category",
-        max_bars=6, value_key="count", label_key="category",
+        max_bars=6, value_key="count", label_key="category", is_dark=is_dark,
     )
     location_chart = AnalyticsUI.horizontal_bar_chart(
         reports_per_location, title="Reports by Location",
-        max_bars=6, value_key="count", label_key="location",
+        max_bars=6, value_key="count", label_key="location", is_dark=is_dark,
     )
-    resolution_ring = AnalyticsUI.resolution_ring(resolution_rate)
-    reporters_card = AnalyticsUI.top_reporters_card(top_reporters)
-    status_bar = AnalyticsUI.status_distribution_bar(status_counts, total_reports)
+    resolution_ring = AnalyticsUI.resolution_ring(resolution_rate, is_dark=is_dark)
+    reporters_card = AnalyticsUI.top_reporters_card(top_reporters, is_dark=is_dark)
+    status_bar = AnalyticsUI.status_distribution_bar(status_counts, total_reports, is_dark=is_dark)
 
     # Analytics summary row
     analytics_summary = ft.ResponsiveRow(
@@ -318,28 +371,28 @@ def admin_dashboard(page: ft.Page, user_data=None):
             ft.Container(
                 content=AnalyticsUI.mini_stat(
                     "Total Reports", total_reports,
-                    ft.Icons.DESCRIPTION_OUTLINED, _ACCENT, "#DBEAFE",
+                    ft.Icons.DESCRIPTION_OUTLINED, _ACCENT, "#DBEAFE", is_dark=is_dark,
                 ),
                 col={"xs": 6, "sm": 6, "md": 3},
             ),
             ft.Container(
                 content=AnalyticsUI.mini_stat(
                     "Users", total_users,
-                    ft.Icons.PEOPLE_OUTLINE_ROUNDED, "#7C3AED", "#EDE9FE",
+                    ft.Icons.PEOPLE_OUTLINE_ROUNDED, "#7C3AED", "#EDE9FE", is_dark=is_dark,
                 ),
                 col={"xs": 6, "sm": 6, "md": 3},
             ),
             ft.Container(
                 content=AnalyticsUI.mini_stat(
                     "Resolved", resolution_rate.get('resolved', 0),
-                    ft.Icons.CHECK_CIRCLE_OUTLINE, _GREEN, _GREEN_BG,
+                    ft.Icons.CHECK_CIRCLE_OUTLINE, _GREEN, _GREEN_BG, is_dark=is_dark,
                 ),
                 col={"xs": 6, "sm": 6, "md": 3},
             ),
             ft.Container(
                 content=AnalyticsUI.mini_stat(
                     "Resolution %", f"{resolution_rate.get('rate', 0)}%",
-                    ft.Icons.TRENDING_UP_ROUNDED, _AMBER, _AMBER_BG,
+                    ft.Icons.TRENDING_UP_ROUNDED, _AMBER, _AMBER_BG, is_dark=is_dark,
                 ),
                 col={"xs": 6, "sm": 6, "md": 3},
             ),
@@ -396,7 +449,7 @@ def admin_dashboard(page: ft.Page, user_data=None):
             ),
             # ── Data Analytics ──
             ft.Container(height=20),
-            AnalyticsUI.section_header("Data Analytics", ft.Icons.ANALYTICS_OUTLINED),
+            AnalyticsUI.section_header("Data Analytics", ft.Icons.ANALYTICS_OUTLINED, is_dark=is_dark),
             ft.Container(height=10),
             analytics_summary,
             ft.Container(height=12),
@@ -446,7 +499,7 @@ def admin_dashboard(page: ft.Page, user_data=None):
     # ── Assemble ──
     sidebar_wrapper.visible = show_sidebar
     page.end_drawer = drawer
-    page.theme_mode = ft.ThemeMode.LIGHT
+    page.theme_mode = ft.ThemeMode.DARK if is_dark else ft.ThemeMode.LIGHT
     page.bgcolor = _BG
 
     layout = ft.Row(
