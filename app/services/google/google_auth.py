@@ -7,6 +7,13 @@ import os
 import json
 import tempfile
 
+SCOPES = [
+    "openid",
+    "https://www.googleapis.com/auth/userinfo.email",
+    "https://www.googleapis.com/auth/userinfo.profile"
+]
+REDIRECT_URI = "http://localhost:8550/api/oauth/redirect"
+
 # Read from environment variable
 CLIENT_SECRET_JSON = os.environ.get("GOOGLE_CLIENT_SECRET")
 if CLIENT_SECRET_JSON:
