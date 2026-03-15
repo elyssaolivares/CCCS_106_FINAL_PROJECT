@@ -1,4 +1,5 @@
 import flet as ft
+import os
 from app.services.google.google_auth import google_oauth_login
 from app.services.auth.admin_account import validate_admin_credentials
 from app.services.database.database import db
@@ -7,7 +8,7 @@ from app.services.activity.activity_monitor import activity_monitor
 from app.views.dashboard.admin.admin_dashboard import admin_dashboard
 from app.views.dashboard.user_dashboard import user_dashboard
 from app.services.session import get_session_manager
-
+from app.services.google.oauth_server import get_auth_url
 # ── Color palette ──
 _PRIMARY = "#0F2B5B"
 _PRIMARY_LIGHT = "#1565C0"
@@ -163,40 +164,24 @@ def loginpage(page: ft.Page):
             return
 
         try:
-            user_info = google_oauth_login(page)
-            email = user_info["email"]
-            name = user_info["name"]
-            user_firstname = name.split()[0] if name else "User"
+            # Redirect URI must exactly match one configured in Google Cloud OAuth client.
+            redirect_uri = os.environ.get("REDIRECT_URI")
+            if not redirect_uri:
+                host = page.session.get("host") or "fixit.up.railway.app"
+                redirect_uri = f"https://{host}/api/oauth/redirect"
 
-            existing = db.get_user_by_email(email)
-            preserved_name = existing.get("name") if existing and existing.get("name") else name
-
-            user_data = {
-                "name": preserved_name,
-                "email": email,
-                "type": role.lower(),
-            }
-            if existing and existing.get("picture"):
-                user_data["picture"] = existing["picture"]
-            elif user_info.get("picture"):
-                user_data["picture"] = user_info["picture"]
-
-            db.create_or_update_user(email, preserved_name, role.lower())
-            session_manager = get_session_manager()
-            session_manager.create_session(email, preserved_name, role.lower())
-
-            audit_logger.log_action(email, preserved_name, "login", resource_type="oauth", status="success", details=f"OAuth login as {role}")
-            activity_monitor.log_login_attempt(email, preserved_name, success=True, details=f"OAuth login as {role}")
-            page.controls.clear()
-            user_dashboard(page, user_data)
-            page.update()
-            show_snackbar(f"Welcome {user_firstname}!", ft.Colors.GREEN_400)
-
+            auth_url, state = get_auth_url(redirect_uri)
+            
+            # Store state in session for verification
+            page.session.set("oauth_state", state)
+            page.session.set("oauth_role", role)
+            
+            # Open Google login in new window
+            page.launch_url(auth_url)
+            
         except Exception as ex:
             show_snackbar(str(ex))
-            audit_logger.log_action("unknown", "unknown", "login_attempt", resource_type="oauth", status="failed", details=str(ex))
-            activity_monitor.log_login_attempt("unknown", "unknown", success=False, details=f"OAuth failed: {str(ex)}")
-
+            
     # ── Buttons ──
     login_button = ft.Container(
         content=ft.Text("Sign In", size=15, font_family="Poppins-SemiBold", color=ft.Colors.WHITE),
