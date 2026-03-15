@@ -38,25 +38,10 @@ def main(page: ft.Page):
 
 import secrets as _secrets
 os.environ.setdefault("FLET_SECRET_KEY", _secrets.token_hex(16))
-
-def run_app() -> None:
-    app_kwargs = {
-        "target": main,
-        "assets_dir": os.path.join(os.path.dirname(__file__), "assets"),
-        "upload_dir": "storage/temp",
-        "view": ft.AppView.WEB_BROWSER,
-        "host": "0.0.0.0",
-        "port": int(os.environ.get("PORT", 8080)),
-    }
-
-    try:
-        loop = asyncio.get_running_loop()
-    except RuntimeError:
-        ft.app(**app_kwargs)
-        return
-
-    loop.create_task(ft.app_async(**app_kwargs))
-
-
 if __name__ == "__main__":
-    run_app()
+    ft.app(target= main,
+        assets_dir= os.path.join(os.path.dirname(__file__), "assets"),
+        upload_dir= "storage/temp",
+        view= ft.AppView.WEB_BROWSER,
+        host= "0.0.0.0",
+        port= int(os.environ.get("PORT", 8080)),)
