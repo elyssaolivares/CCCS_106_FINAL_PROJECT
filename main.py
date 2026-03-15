@@ -1,5 +1,4 @@
 import os
-import asyncio
 import flet as ft
 from app.views.homepage import homepage
 from app.views.loginpage import loginpage
@@ -38,10 +37,18 @@ def main(page: ft.Page):
 
 import secrets as _secrets
 os.environ.setdefault("FLET_SECRET_KEY", _secrets.token_hex(16))
+
+APP_KWARGS = {
+    "target": main,
+    "assets_dir": os.path.join(os.path.dirname(__file__), "assets"),
+    "upload_dir": "storage/temp",
+    "view": ft.AppView.WEB_BROWSER,
+    "host": "0.0.0.0",
+    "port": int(os.environ.get("PORT", 8080)),
+}
+
+# ASGI export for production servers (e.g., Railway via uvicorn main:app).
+app = ft.app(export_asgi_app=True, **APP_KWARGS)
+
 if __name__ == "__main__":
-    ft.app(target= main,
-        assets_dir= os.path.join(os.path.dirname(__file__), "assets"),
-        upload_dir= "storage/temp",
-        view= ft.AppView.WEB_BROWSER,
-        host= "0.0.0.0",
-        port= int(os.environ.get("PORT", 8080)),)
+    ft.app(**APP_KWARGS)
