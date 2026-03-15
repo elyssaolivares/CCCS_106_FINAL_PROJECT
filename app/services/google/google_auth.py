@@ -3,14 +3,20 @@ import webbrowser
 from google_auth_oauthlib.flow import Flow
 from urllib.parse import urlparse, parse_qs
 from http.server import BaseHTTPRequestHandler, HTTPServer
+import os
+import json
+import tempfile
 
-CLIENT_SECRETS_FILE = os.path.join(os.path.dirname(__file__), "client_secret.example.json")
-SCOPES = [
-    "openid",
-    "https://www.googleapis.com/auth/userinfo.email",
-    "https://www.googleapis.com/auth/userinfo.profile"
-]
-REDIRECT_URI = "http://localhost:8550/api/oauth/redirect"
+# Read from environment variable
+CLIENT_SECRET_JSON = os.environ.get("GOOGLE_CLIENT_SECRET")
+if CLIENT_SECRET_JSON:
+    # Write to a temporary file that Flow can read
+    with tempfile.NamedTemporaryFile(mode='w', suffix='.json', delete=False) as f:
+        f.write(CLIENT_SECRET_JSON)
+        CLIENT_SECRETS_FILE = f.name
+else:
+    # Fallback for local development
+    CLIENT_SECRETS_FILE = os.path.join(os.path.dirname(__file__), "client_secret.json")
 
 
 _SUCCESS_HTML = b"""<!DOCTYPE html>
