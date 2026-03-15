@@ -6,13 +6,15 @@ from http.server import BaseHTTPRequestHandler, HTTPServer
 import os
 import json
 import tempfile
+import socket
 
 SCOPES = [
     "openid",
     "https://www.googleapis.com/auth/userinfo.email",
     "https://www.googleapis.com/auth/userinfo.profile"
 ]
-REDIRECT_URI = "http://localhost:8550/api/oauth/redirect"
+
+REDIRECT_URI = os.environ.get("REDIRECT_URI", "http://localhost:8550/api/oauth/redirect")
 
 # Read from environment variable
 CLIENT_SECRET_JSON = os.environ.get("GOOGLE_CLIENT_SECRET")
@@ -24,6 +26,15 @@ if CLIENT_SECRET_JSON:
 else:
     # Fallback for local development
     CLIENT_SECRETS_FILE = os.path.join(os.path.dirname(__file__), "client_secret.json")
+
+
+def get_available_port():
+    """Find an available port"""
+    with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as s:
+        s.bind(('', 0))
+        s.listen(1)
+        port = s.getsockname()[1]
+    return port
 
 
 _SUCCESS_HTML = b"""<!DOCTYPE html>
@@ -311,9 +322,7 @@ class OAuthRedirectHandler(BaseHTTPRequestHandler):
 
 
 def google_oauth_login(page=None):
-  
     try:
-        
         flow = Flow.from_client_secrets_file(
             CLIENT_SECRETS_FILE,
             scopes=SCOPES,
@@ -321,14 +330,15 @@ def google_oauth_login(page=None):
         )
 
         auth_url, _ = flow.authorization_url(prompt="consent")
-
         webbrowser.open(auth_url)
 
-        server_address = ("", 8550)
+        # Use dynamic port instead of hardcoded 8550
+        port = get_available_port()
+        server_address = ("", port)
         httpd = HTTPServer(server_address, OAuthRedirectHandler)
         httpd.auth_code = None
-        print("Waiting for OAuth redirect...")
-        httpd.handle_request()  
+        print(f"Waiting for OAuth redirect on port {port}...")
+        httpd.handle_request()
 
         if not httpd.auth_code:
             raise Exception("No authorization code received.")
@@ -344,7 +354,6 @@ def google_oauth_login(page=None):
         user_info = resp.json()
         email = user_info.get("email")
         name = user_info.get("name")
-
 
         if email.endswith("@my.cspc.edu.ph"):
             return {"name": name, "email": email, "picture": user_info.get("picture")}
