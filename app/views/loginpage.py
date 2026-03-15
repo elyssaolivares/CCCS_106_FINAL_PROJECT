@@ -280,7 +280,7 @@ def loginpage(page: ft.Page):
                     expand=True,
                     bgcolor="#0A1628",
                     image=ft.DecorationImage(
-                        src="bg.jpg",
+                        src="/bg.jpg",
                         fit=ft.ImageFit.COVER,
                     ),
                 ),
@@ -294,7 +294,7 @@ def loginpage(page: ft.Page):
                     content=ft.Column(
                         [
                             ft.Image(
-                                src="cspc_logo.png",
+                                src="/cspc_logo.png",
                                 width=100,
                                 height=100,
                                 fit=ft.ImageFit.CONTAIN,
@@ -378,7 +378,7 @@ def loginpage(page: ft.Page):
                                         expand=True,
                                         bgcolor="#0A1628",
                                         image=ft.DecorationImage(
-                                            src="bg.jpg",
+                                            src="/bg.jpg",
                                             fit=ft.ImageFit.COVER,
                                         ),
                                     ),

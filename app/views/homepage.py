@@ -36,7 +36,7 @@ def homepage(page, login_func):
 
     # === LOGO — starts big, will shrink in place ===
     home_logo = ft.Image(
-        src="cspc_logo.png",
+        src="/cspc_logo.png",
         width=180,
         height=180,
         fit=ft.ImageFit.CONTAIN,
@@ -95,7 +95,7 @@ def homepage(page, login_func):
     bg = ft.Container(
         expand=True,
         image=ft.DecorationImage(
-            src="bg.jpg",
+            src="/bg.jpg",
             fit=ft.ImageFit.COVER,
         ),
         scale=1.25,

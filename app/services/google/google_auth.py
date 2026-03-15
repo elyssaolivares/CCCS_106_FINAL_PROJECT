@@ -4,7 +4,7 @@ from google_auth_oauthlib.flow import Flow
 from urllib.parse import urlparse, parse_qs
 from http.server import BaseHTTPRequestHandler, HTTPServer
 
-CLIENT_SECRETS_FILE = r"C:\Users\user\Documents\CCCS_106_FINAL_PROJECT\app\services\google\client_secret.json"
+CLIENT_SECRETS_FILE = r"/home/ayskopi/Documents/CCCS_106_FINAL_PROJECT/app/services/google/client_secret.json"
 SCOPES = [
     "openid",
     "https://www.googleapis.com/auth/userinfo.email",

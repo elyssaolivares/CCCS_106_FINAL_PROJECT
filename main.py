@@ -10,7 +10,6 @@ def main(page: ft.Page):
     page.horizontal_alignment = ft.CrossAxisAlignment.CENTER
     page.padding = 0 
     page.bgcolor = ft.Colors.WHITE
-    page.assets_dir = "assets"
     
     # set Poppins as default font
     page.fonts = {
@@ -41,7 +40,9 @@ os.environ.setdefault("FLET_SECRET_KEY", _secrets.token_hex(16))
 
 ft.app(
     target=main,
-    assets_dir="assets",
+    assets_dir=os.path.join(os.path.dirname(__file__), "assets"),
     upload_dir="storage/temp",
-    view=ft.WEB_BROWSER,
+    view=ft.AppView.WEB_BROWSER,
+    host="0.0.0.0",
+    port=int(os.environ.get("PORT", 8080))
 )
