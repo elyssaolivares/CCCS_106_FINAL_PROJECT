@@ -40,8 +40,8 @@ def _resolve_redirect_uri(page: ft.Page) -> str:
     if env_redirect_uri:
         return env_redirect_uri
 
-    host = page.session.get("host") or "fixit.up.railway.app"
-    return f"https://{host}/api/oauth/redirect"
+    return "http://localhost:8550/api/oauth/redirect"
+
 
 def main(page: ft.Page):    
     page.title = "FIXIT"
@@ -160,7 +160,7 @@ APP_KWARGS = {
     "upload_dir": "storage/temp",
     "view": ft.AppView.WEB_BROWSER,
     "host": "0.0.0.0",
-    "port": int(os.environ.get("PORT", 8080)),
+    "port": int(os.environ.get("PORT", 8550)),
 }
 
 # ASGI export for production servers

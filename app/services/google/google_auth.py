@@ -332,7 +332,7 @@ def google_oauth_login(page=None):
         auth_url, _ = flow.authorization_url(prompt="consent")
         webbrowser.open(auth_url)
 
-        # Use dynamic port instead of hardcoded 8550
+        # Use the app's configured OAuth redirect port.
         port = get_available_port()
         server_address = ("", port)
         httpd = HTTPServer(server_address, OAuthRedirectHandler)

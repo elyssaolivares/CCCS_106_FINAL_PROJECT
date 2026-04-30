@@ -167,8 +167,7 @@ def loginpage(page: ft.Page):
             # Redirect URI must exactly match one configured in Google Cloud OAuth client.
             redirect_uri = os.environ.get("REDIRECT_URI")
             if not redirect_uri:
-                host = page.session.get("host") or "fixit.up.railway.app"
-                redirect_uri = f"https://{host}/api/oauth/redirect"
+                redirect_uri = "http://localhost:8550/api/oauth/redirect"
 
             auth_url, state = get_auth_url(redirect_uri)
             
