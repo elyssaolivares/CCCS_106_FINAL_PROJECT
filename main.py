@@ -3,6 +3,7 @@ from urllib.parse import urlparse, parse_qs, urlencode
 import flet as ft
 from app.views.homepage import homepage
 from app.views.loginpage import loginpage
+from app.services.database.database import db
 from app.services.session import get_session_manager
 from app.services.google.oauth_server import exchange_code_for_token
 
@@ -44,6 +45,14 @@ def _resolve_redirect_uri(page: ft.Page) -> str:
     return f"https://{host}/api/oauth/redirect"
 
 def main(page: ft.Page):    
+    backend_name = type(db.backend).__name__
+    if "_SupabaseBackend" in backend_name:
+        print(f"[FIXIT] Database backend: Supabase ({os.getenv('SUPABASE_URL', 'missing SUPABASE_URL')})")
+    elif "_SQLiteBackend" in backend_name:
+        print("[FIXIT] Database backend: SQLite fallback")
+    else:
+        print(f"[FIXIT] Database backend: {backend_name}")
+
     page.title = "FIXIT"
     page.vertical_alignment = ft.MainAxisAlignment.CENTER
     page.horizontal_alignment = ft.CrossAxisAlignment.CENTER

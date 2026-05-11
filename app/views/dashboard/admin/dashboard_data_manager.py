@@ -69,7 +69,7 @@ class DataManager:
             category = report.get('category', 'Uncategorized')
             counts[category] = counts.get(category, 0) + 1
         return counts
-    
+
     @staticmethod
     def get_top_categories(reports, limit=5):
         """Get top N categories by report count"""
